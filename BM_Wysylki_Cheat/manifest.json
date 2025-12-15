@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Klikacz ISC",
+  "version": "1.0",
+  "description": "Kliknij element #isc_39 po naciśnięciu przycisku.",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_title": "Kliknij",
+    "default_popup": "popup.html"
+  }
+}
