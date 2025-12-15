@@ -27,7 +27,5 @@ Skrypt automatyzuje dodawanie zgłoszeń w SmartClient:
 
 ## Nagranie instruktażowe
 
-<video width="400" controls>
-  <source src="media/nagranie.mp4" type="video/mp4">
-  Your browser does not support HTML video.
-</video>
+[📹 Zobacz nagranie instruktażowe](https://drive.google.com/file/d/1UXoHr-C8fTvOn3GMQXI--mIEulvS1e9a/view?usp=sharing)
+
