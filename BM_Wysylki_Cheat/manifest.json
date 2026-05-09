@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Klikacz ISC",
-  "version": "1.0",
-  "description": "Kliknij element #isc_39 po naciśnięciu przycisku.",
+  "name": "BM Wysyłki Auto",
+  "version": "2.0",
+  "description": "Automatyczne dodawanie zgłoszeń Sampling VELO",
   "permissions": ["activeTab", "scripting"],
   "action": {
-    "default_title": "Kliknij",
+    "default_title": "BM Wysyłki",
     "default_popup": "popup.html"
   }
 }

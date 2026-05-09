@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>BM Cheat — Info & FAQ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0b1d2c;
+      color: #e4eff7;
+      padding: 0;
+      width: 340px;
+      overflow-x: hidden;
+    }
+
+    .header {
+      background: linear-gradient(160deg, #00c8c8 0%, #00b4b4 40%, #009e9e 100%);
+      padding: 14px 16px 12px;
+      text-align: center;
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #ffe03a, #ffd200, #ffe03a);
+    }
+    .header-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 2px;
+    }
+    .back-btn {
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+      text-decoration: none;
+    }
+    .back-btn:hover { background: rgba(255,255,255,0.3); }
+
+    .content { padding: 14px; }
+
+    .info-section {
+      background: rgba(0, 200, 200, 0.06);
+      border: 1px solid rgba(0, 200, 200, 0.2);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .info-section h2 {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #00d4d4;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .info-section h2 .icon {
+      font-size: 14px;
+    }
+    .info-section p, .info-section li {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #b0d4d4;
+    }
+    .info-section p { margin-bottom: 8px; }
+    .info-section ul {
+      padding-left: 16px;
+      margin-bottom: 8px;
+    }
+    .info-section li { margin-bottom: 4px; }
+    .info-section strong { color: #ffe03a; font-weight: 700; }
+    .info-section code {
+      background: rgba(0,200,200,0.1);
+      border: 1px solid rgba(0,200,200,0.2);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 11px;
+      color: #00d4d4;
+      font-family: 'Courier New', monospace;
+    }
+
+    .faq-item {
+      margin-bottom: 12px;
+    }
+    .faq-q {
+      font-size: 12px;
+      font-weight: 700;
+      color: #ffe03a;
+      margin-bottom: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .faq-q::before {
+      content: 'Q';
+      display: inline-block;
+      min-width: 18px;
+      height: 18px;
+      background: rgba(255,224,58,0.15);
+      border: 1px solid rgba(255,224,58,0.3);
+      border-radius: 3px;
+      text-align: center;
+      font-size: 10px;
+      line-height: 18px;
+      font-weight: 800;
+      color: #ffe03a;
+    }
+    .faq-a {
+      font-size: 12px;
+      color: #b0d4d4;
+      line-height: 1.6;
+      padding-left: 24px;
+    }
+
+    .step-list {
+      counter-reset: step;
+      padding-left: 0;
+      list-style: none;
+    }
+    .step-list li {
+      counter-increment: step;
+      padding-left: 28px;
+      position: relative;
+      margin-bottom: 8px;
+    }
+    .step-list li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #00c8c8, #00a0a0);
+      border-radius: 50%;
+      text-align: center;
+      line-height: 20px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .version-tag {
+      text-align: center;
+      padding: 12px;
+      font-size: 9px;
+      color: rgba(0, 200, 200, 0.25);
+      letter-spacing: 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <a class="back-btn" id="goBack" title="Wstecz">&larr;</a>
+    <div class="header-title">INFO & FAQ</div>
+  </div>
+
+  <div class="content">
+
+    <div class="info-section">
+      <h2><span class="icon">&#9889;</span> Jak dziala bot?</h2>
+      <p>Bot automatyzuje wypelnianie formularzy na stronie <strong>wysylki121.cursor.pl</strong>. Wstrzykuje skrypt JavaScript do aktywnej karty przegladarki i symuluje klikniecia w elementy SmartClient (ISC).</p>
+      <p>Caly proces dla jednego zgloszenia:</p>
+      <ol class="step-list">
+        <li>Klika przycisk <strong>Nowy</strong></li>
+        <li>Wybiera <strong>Rodzaj zgloszenia</strong> z listy</li>
+        <li>Ustawia <strong>Event</strong> (Horeca / Juwenalia)</li>
+        <li>Wybiera <strong>Region</strong> (R312D2S2)</li>
+        <li>Wybiera <strong>wariant</strong> (Sampling VELO / Wydanie Velo)</li>
+        <li>Wybiera <strong>smak VELO</strong> z listy</li>
+        <li>Wpisuje <strong>Nr akcji</strong></li>
+        <li>Generuje <strong>losowy email</strong></li>
+        <li>Uploaduje <strong>zdjecie</strong> (jesli dodano)</li>
+        <li>Klika <strong>Zatwierdz</strong></li>
+      </ol>
+      <p>Pomiedzy krokami sa opoznienia <code>200-600ms</code> zeby strona zdazyla zaladowac elementy.</p>
+    </div>
+
+    <div class="info-section">
+      <h2><span class="icon">&#128101;</span> Tryby zespolu</h2>
+      <p><strong>Sampling BM</strong> — formularz BM Sampling. Wypelnia: Rodzaj zgloszenia, Event, Region, Wariant (Sampling VELO), Wybierz VELO, Nr akcji, email, zdjecie.</p>
+      <p><strong>VELO Team</strong> — formularz Zgloszen VELO. Wypelnia: Rodzaj zgloszenia, Region, Wydana oferta, Wybierz VELO, Nr akcji, email, zdjecie. Nie ustawia pola Event.</p>
+    </div>
+
+    <div class="info-section">
+      <h2><span class="icon">&#10067;</span> FAQ</h2>
+
+      <div class="faq-item">
+        <div class="faq-q">Jakie maile generuje bot?</div>
+        <div class="faq-a">Losowe, realistyczne adresy email. W 80% przypadkow polskie imiona i nazwiska (np. <code>kamil.nowak4821@wp.pl</code>), w 20% angielskie (np. <code>david_johnson372@gmail.com</code>). Domeny: gmail.com, wp.pl, onet.pl, interia.pl, outlook.com, o2.pl, int.pl, icloud.com, yahoo.com, tlen.pl.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Skad bot bierze dane?</div>
+        <div class="faq-a">Wszystkie dane sa wpisywane rucznie przez uzytkownika w popupie (Nr akcji, wariant VELO, zdjecia). Email jest generowany losowo. Zadne dane nie sa pobierane z zewnetrznych serwerow.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Jak dzialaja zdjecia?</div>
+        <div class="faq-a">Mozesz dodac wiele zdjec naraz. Bot przydziela je <strong>cyklicznie</strong> — jesli masz 3 zdjecia i robisz 9 zgloszen, kazde zdjecie trafi do 3 zgloszen po kolei (1,2,3,1,2,3,1,2,3).</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Co znaczy tryb "Ilosc" vs "Czas"?</div>
+        <div class="faq-a"><strong>Ilosc</strong> — bot doda dokladnie tyle zgloszen ile wpiszesz. <strong>Czas</strong> — bot bedzie dodawal zgloszenia przez podany czas (np. 2 godziny), az czas minie.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Jakie opoznienie ustawic?</div>
+        <div class="faq-a">Domyslnie <strong>7 sekund</strong>. To daje stronie czas na przetworzenie formularza. Minimum to 3 sekundy — ponizej strona moze nie nadazyc. Jesli masz wolne lacze, ustaw 10-15 sek.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Czy moge zatrzymac bota w trakcie?</div>
+        <div class="faq-a">Tak — po uruchomieniu pojawia sie czerwony przycisk <strong>ZATRZYMAJ</strong>. Bot zatrzyma sie po zakonczeniu biezacego zgloszenia (nie przerwie w polowie).</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Co jesli bot sie wysypie?</div>
+        <div class="faq-a">Kazde zgloszenie ma wlasna obsluge bledow. Jesli jedno sie nie uda, bot zaloguje blad (FAIL) i przejdzie do nastepnego. Mozesz zobaczyc szczegoly w logu.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Czym sie rozni Horeca od Juwenalia?</div>
+        <div class="faq-a">To rozne typy eventow w systemie BM. Wybierz ten ktory odpowiada Twojej aktualnej akcji. W trybie VELO Team pole Event nie jest uzywane.</div>
+      </div>
+
+    </div>
+
+    <div class="info-section">
+      <h2><span class="icon">&#9888;</span> Uwagi</h2>
+      <p>Bot dziala <strong>tylko</strong> na stronie <code>wysylki121.cursor.pl</code>. Musisz byc zalogowany i miec otwarta odpowiednia zakladke (Zgloszenia BM lub Sampling).</p>
+      <p>Nie zamykaj popup-a rozszerzenia w trakcie pracy bota — skrypt dziala z poziomu popup-a.</p>
+    </div>
+
+  </div>
+
+  <div class="version-tag">BM CHEAT v2.0 — VELO POUCH SYSTEM</div>
+
+  <script>
+    document.getElementById("goBack").addEventListener("click", () => {
+      window.location.href = "popup.html";
+    });
+  </script>
+</body>
+</html>

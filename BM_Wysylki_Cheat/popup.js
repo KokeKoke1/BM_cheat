@@ -1,209 +1,606 @@
-document.getElementById("clickButton").addEventListener("click", async () => {
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
 
-    const NR_AKCJI = document.getElementById("nr_akcji").value;
-    const WYBIERZ_VELO_VALUE = document.getElementById("velo").value;
-    const quantity = parseInt(document.getElementById("quantity").value) || 1;
+  let running = false;
+  let abortFlag = false;
+  let successCount = 0;
+  let failCount = 0;
+  let currentTeam = "sampling";
+  let startTime = 0;
+  let timerInterval = null;
 
-    if (!NR_AKCJI) {
-        document.querySelector(".error").textContent = "Podaj numer akcji";
-        return;
+  const startBtn = $("#startBtn");
+  const stopBtn = $("#stopBtn");
+  const logEl = $("#log");
+  const progressEl = $("#progress");
+  const progressBar = progressEl.querySelector(".bar");
+  const runPanel = $("#runPanel");
+  const formBottom = $("#formBottom");
+
+  // --- Counter elements ---
+  const counterCurrent = $("#counterCurrent");
+  const counterTotal = $("#counterTotal");
+  const cdOk = $("#cdOk");
+  const cdFail = $("#cdFail");
+  const cdTime = $("#cdTime");
+
+  // --- Info page ---
+  $("#openInfo").addEventListener("click", () => {
+    window.location.href = "info.html";
+  });
+
+  // --- Team toggle ---
+  $$("#teamToggle button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (running) return;
+      $$("#teamToggle button").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentTeam = btn.dataset.team;
+
+      const isSampling = currentTeam === "sampling";
+      $("#veloOfertaWrap").style.display = isSampling ? "none" : "";
+      $("#eventSelect").closest("label")?.style && ($("#eventSelect").parentElement.style.display = "");
+      // Event only for Sampling
+      const eventLabel = [...document.querySelectorAll("label")].find(l => l.getAttribute("for") === "eventSelect");
+      const eventSelect = $("#eventSelect");
+      if (eventLabel) eventLabel.style.display = isSampling ? "" : "none";
+      if (eventSelect) eventSelect.style.display = isSampling ? "" : "none";
+
+      const hint = $("#nrAkcjiHint");
+      hint.textContent = isSampling ? "tourplaner" : "6-7 cyfr";
+      hint.className = `badge ${isSampling ? "badge-sampling" : "badge-velo"}`;
+    });
+  });
+
+  // --- Mode toggle ---
+  $$("#modeToggle button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $$("#modeToggle button").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const mode = btn.dataset.mode;
+      $("#countSettings").style.display = mode === "count" ? "" : "none";
+      $("#timeSettings").style.display = mode === "time" ? "" : "none";
+    });
+  });
+
+  // --- Elapsed timer ---
+  function formatElapsed(ms) {
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    if (h > 0) return `${h}h ${m % 60}m ${s % 60}s`;
+    if (m > 0) return `${m}m ${s % 60}s`;
+    return `${s}s`;
+  }
+
+  function startTimer() {
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      cdTime.textContent = formatElapsed(Date.now() - startTime);
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  }
+
+  // --- Show/hide running panel ---
+  function showRunPanel() {
+    formBottom.style.display = "none";
+    runPanel.classList.add("visible");
+    runPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function hideRunPanel() {
+    formBottom.style.display = "";
+  }
+
+  // --- Logging ---
+  function log(msg, type = "info") {
+    logEl.style.display = "block";
+    const div = document.createElement("div");
+    const time = new Date().toLocaleTimeString("pl-PL");
+    div.className = `log-${type}`;
+    div.textContent = `[${time}] ${msg}`;
+    logEl.prepend(div);
+    while (logEl.children.length > 100) logEl.lastChild.remove();
+  }
+
+  function updateCounter(current, total) {
+    counterCurrent.textContent = current;
+    counterTotal.textContent = typeof total === "number" ? total : total;
+    cdOk.textContent = `OK: ${successCount}`;
+    if (failCount > 0) {
+      cdFail.style.display = "";
+      cdFail.textContent = `FAIL: ${failCount}`;
+    } else {
+      cdFail.style.display = "none";
     }
+  }
 
-    document.getElementById("clickButton").disabled = true;
-    document.querySelector(".error").textContent = "";
-    document.querySelector(".success").textContent = "Generuję...";
+  function setProgress(current, total) {
+    progressEl.style.display = "block";
+    const pct = total > 0 ? Math.min((current / total) * 100, 100) : 0;
+    progressBar.style.width = `${pct}%`;
+  }
 
-    /* =======================
-       📸 WIELE ZDJĘĆ
-    ======================= */
-    const files = [...document.querySelector("#fileInput").files];
-    const filesData = [];
-
+  // --- File reading ---
+  async function readFiles() {
+    const input = $("#fileInput");
+    if (!input || !input.files) return [];
+    const files = [...input.files];
+    const result = [];
     for (const file of files) {
-        const buffer = await file.arrayBuffer();
-        const bytes = new Uint8Array(buffer);
-        let binary = "";
-        const chunkSize = 0x8000;
-
-        for (let i = 0; i < bytes.length; i += chunkSize) {
-            binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-        }
-
-        filesData.push({
-            name: file.name,
-            type: file.type,
-            base64: btoa(binary)
-        });
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      result.push({ name: file.name, type: file.type, base64: btoa(binary) });
     }
+    return result;
+  }
+
+  function sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+
+  // ====================================================
+  //  SHARED HELPERS (injected into page)
+  // ====================================================
+  const SHARED_PAGE_HELPERS = `
+    function fireMouse(el) {
+      if (!el) return false;
+      const r = el.getBoundingClientRect();
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+      for (const ev of ["pointerdown","mousedown","pointerup","mouseup","click"]) {
+        el.dispatchEvent(new MouseEvent(ev, { bubbles:true, cancelable:true, clientX:x, clientY:y, button:0 }));
+      }
+      return true;
+    }
+
+    function waitFor(selectorOrFn, timeout = 5000) {
+      return new Promise((resolve, reject) => {
+        const start = Date.now();
+        const iv = setInterval(() => {
+          let el = typeof selectorOrFn === "string" ? document.querySelector(selectorOrFn) : selectorOrFn();
+          if (el) { clearInterval(iv); resolve(el); }
+          else if (Date.now() - start > timeout) { clearInterval(iv); reject(new Error("Timeout: " + String(selectorOrFn).slice(0,60))); }
+        }, 200);
+      });
+    }
+
+    function waitForUploadFinish(timeout = 12000) {
+      return new Promise((resolve, reject) => {
+        const obs = new MutationObserver(() => {
+          const thumbs = document.querySelectorAll("img, canvas");
+          if (thumbs.length > 0) { obs.disconnect(); resolve(); }
+        });
+        obs.observe(document.body, { childList:true, subtree:true });
+        setTimeout(() => { obs.disconnect(); reject(new Error("Upload timeout")); }, timeout);
+      });
+    }
+
+    function generateRandomEmail() {
+      const plF = ["adam","tomasz","kamil","marek","anna","kasia","katarzyna","julia","pawel","lukasz","michal","piotr","karolina","monika","bartek","mateusz","dawid","jakub","szymon","natalia","agnieszka","magdalena","wojciech","krzysztof","marcin","grzegorz","dominik","patryk","rafal","artur"];
+      const plL = ["kowalski","nowak","mazur","wojcik","kaczmarek","zielinski","dabrowski","sikora","lewandowski","krupa","jankowski","grabowski","pawlak","michalski","nowakowski","adamczyk","dudek","szymanski","wozniak","kozlowski","kaminski"];
+      const enF = ["john","michael","david","james","robert","daniel","thomas","jessica","emily","sarah","laura","chris","alex","ryan","kevin"];
+      const enL = ["smith","johnson","brown","taylor","anderson","thompson","white","martin","garcia","wilson","moore","jackson"];
+      const domains = ["gmail.com","wp.pl","onet.pl","interia.pl","outlook.com","o2.pl","int.pl","icloud.com","yahoo.com","tlen.pl"];
+
+      const usePL = Math.random() < 0.8;
+      const first = usePL ? plF[Math.floor(Math.random()*plF.length)] : enF[Math.floor(Math.random()*enF.length)];
+      const last = usePL ? plL[Math.floor(Math.random()*plL.length)] : enL[Math.floor(Math.random()*enL.length)];
+      let email = first;
+      const sep = [".","_",""][Math.floor(Math.random()*3)];
+      if (Math.random() < 0.6) email += sep + last;
+      email += Math.floor(10 + Math.random()*9990);
+      return email + "@" + domains[Math.floor(Math.random()*domains.length)];
+    }
+
+    function clickPickListByLabel(labelText) {
+      const labels = [...document.querySelectorAll("label")];
+      const label = labels.find(l => l.innerText.trim().toLowerCase().includes(labelText.toLowerCase()));
+      if (!label) return false;
+      const picker = label.closest("td")?.querySelector(".comboBoxItemPickerLite");
+      if (picker) { fireMouse(picker); return true; }
+      return false;
+    }
+
+    function clickPickListRow(text) {
+      const rows = document.querySelectorAll("div[eventproxy^='isc_PickListMenu'] tr");
+      for (const row of rows) { if (row.innerText.trim() === text) { fireMouse(row); return true; } }
+      return false;
+    }
+
+    function setInputByName(name, value) {
+      var strValue = String(value);
+
+      // 1. Try all isc_TextItem_N objects (SmartClient API)
+      for (var n = 0; n < 30; n++) {
+        var obj = window["isc_TextItem_" + n];
+        if (obj && typeof obj.setValue === "function") {
+          var el = obj.getDataElement ? obj.getDataElement() : null;
+          if (el && el.name === name) { obj.setValue(strValue); return true; }
+        }
+      }
+
+      // 2. Try isc_DynamicForm instances
+      for (var n = 0; n < 20; n++) {
+        var form = window["isc_DynamicForm_" + n];
+        if (form && typeof form.setValue === "function") {
+          try { form.setValue(name, strValue); return true; } catch(e) {}
+        }
+      }
+
+      // 3. Fallback: simulate typing character by character
+      var input = document.querySelector("input[name='" + name + "']");
+      if (!input) return false;
+      input.focus();
+      input.value = "";
+      input.dispatchEvent(new Event("focus", { bubbles: true }));
+      for (var c = 0; c < strValue.length; c++) {
+        input.value += strValue[c];
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new KeyboardEvent("keydown", { key: strValue[c], bubbles: true }));
+        input.dispatchEvent(new KeyboardEvent("keyup", { key: strValue[c], bubbles: true }));
+      }
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      input.dispatchEvent(new Event("blur", { bubbles: true }));
+      return true;
+    }
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+  `;
+
+  // ====================================================
+  //  SAMPLING BM — execute on page
+  // ====================================================
+  function executeSampling(tabId, nrAkcji, veloValue, fileData, rodzajZgloszenia, eventValue) {
+    return new Promise((resolve) => {
+      chrome.scripting.executeScript(
+        {
+          target: { tabId },
+          world: "MAIN",
+          args: [nrAkcji, veloValue, fileData, rodzajZgloszenia, eventValue, SHARED_PAGE_HELPERS],
+          func: async (NR_AKCJI, VELO_VALUE, fileData, RODZAJ, EVENT_VALUE, helpers) => {
+            eval(helpers);
+
+            const VELO_VARIANTS = [
+              "VELO z aromatem Ice Berries 6mg TRIAL",
+              "VELO z aromatem Peach Ice 4mg TRIAL",
+              "VELO z aromatem Simply Spearmint 4mg TRIAL",
+            ];
+            const chosenVelo = VELO_VALUE === "random"
+              ? VELO_VARIANTS[Math.floor(Math.random() * VELO_VARIANTS.length)]
+              : VELO_VALUE;
+
+            const RODZAJ_OPTIONS = ["Globalna awaria systemu", "Brak zasięgu", "Odmowa", "Nieobecność"];
+            const chosenRodzaj = RODZAJ === "random"
+              ? RODZAJ_OPTIONS[Math.floor(Math.random() * RODZAJ_OPTIONS.length)]
+              : RODZAJ;
+
+            try {
+              const newBtn = document.querySelector("div[eventproxy$='_buttonNew']");
+              if (!newBtn) throw new Error("Nie znaleziono przycisku Nowy");
+              fireMouse(newBtn);
+              await delay(600);
+
+              clickPickListByLabel("Rodzaj zgłoszenia");
+              await delay(250);
+              clickPickListRow(chosenRodzaj);
+              await delay(250);
+
+              clickPickListByLabel("Event");
+              await delay(250);
+              clickPickListRow(EVENT_VALUE);
+              await delay(250);
+
+              clickPickListByLabel("Region");
+              await delay(250);
+              clickPickListRow("R312D2S2");
+              await delay(250);
+
+              clickPickListByLabel("Wskaż wariant");
+              await delay(250);
+              clickPickListRow("Sampling VELO");
+              await delay(300);
+
+              clickPickListByLabel("Wybierz VELO");
+              await delay(250);
+              clickPickListRow(chosenVelo);
+              await delay(200);
+
+              setInputByName("nr_akcji", NR_AKCJI);
+
+              const mailInput = document.querySelector("input[name='mail_konsumenta']");
+              if (mailInput) {
+                mailInput.value = generateRandomEmail();
+                mailInput.dispatchEvent(new Event("input", { bubbles: true }));
+                mailInput.dispatchEvent(new Event("change", { bubbles: true }));
+              }
+              await delay(200);
+
+              if (fileData) {
+                const addPhotoBtn = [...document.querySelectorAll("div[eventproxy^='isc_SimpleTabButton_']")]
+                  .find(d => d.innerText.includes("Dodaj zdjęcie"));
+                if (addPhotoBtn) {
+                  fireMouse(addPhotoBtn);
+                  const input = await waitFor("input[type='file']", 6000);
+                  const bin = atob(fileData.base64);
+                  const arr = new Uint8Array(bin.length);
+                  for (let i = 0; i < arr.length; i++) arr[i] = bin.charCodeAt(i);
+                  const file = new File([arr], fileData.name, { type: fileData.type });
+                  const dt = new DataTransfer();
+                  dt.items.add(file);
+                  input.files = dt.files;
+                  input.dispatchEvent(new Event("change", { bubbles: true }));
+                  await waitForUploadFinish(12000);
+                  await delay(300);
+                }
+              }
+
+              await delay(1500);
+              const saveDiv = [...document.querySelectorAll("div[eventproxy$='_buttonSave']")]
+                .find(d => d.innerText.includes("Zatwierdź"));
+              if (saveDiv) {
+                const scObj = window[saveDiv.getAttribute("eventproxy")];
+                if (scObj && typeof scObj.click === "function") scObj.click();
+                else fireMouse(saveDiv);
+              } else {
+                throw new Error("Nie znaleziono Zatwierdź");
+              }
+
+              return { ok: true, velo: chosenVelo, rodzaj: chosenRodzaj };
+            } catch (err) {
+              return { ok: false, error: err.message || String(err) };
+            }
+          },
+        },
+        (results) => {
+          if (chrome.runtime.lastError) resolve({ ok: false, error: chrome.runtime.lastError.message });
+          else if (results?.[0]?.result) resolve(results[0].result);
+          else resolve({ ok: false, error: "Brak odpowiedzi ze skryptu" });
+        }
+      );
+    });
+  }
+
+  // ====================================================
+  //  VELO TEAM — execute on page
+  // ====================================================
+  function executeVeloTeam(tabId, nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileData) {
+    return new Promise((resolve) => {
+      chrome.scripting.executeScript(
+        {
+          target: { tabId },
+          world: "MAIN",
+          args: [nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileData, SHARED_PAGE_HELPERS],
+          func: async (NR_AKCJI, VELO_VALUE, RODZAJ, OFERTA, fileData, helpers) => {
+            eval(helpers);
+
+            const VELO_VARIANTS = [
+              "VELO z aromatem Ice Berries 6mg TRIAL",
+              "VELO z aromatem Peach Ice 4mg TRIAL",
+              "VELO z aromatem Simply Spearmint 4mg TRIAL",
+            ];
+            const chosenVelo = VELO_VALUE === "random"
+              ? VELO_VARIANTS[Math.floor(Math.random() * VELO_VARIANTS.length)]
+              : VELO_VALUE;
+
+            const RODZAJ_OPTIONS = ["Brak zasięgu", "Odmowa", "Nieobecność"];
+            const chosenRodzaj = RODZAJ === "random"
+              ? RODZAJ_OPTIONS[Math.floor(Math.random() * RODZAJ_OPTIONS.length)]
+              : RODZAJ;
+
+            try {
+              const newBtn = document.querySelector("div[eventproxy$='_buttonNew']");
+              if (!newBtn) throw new Error("Nie znaleziono przycisku Nowy");
+              fireMouse(newBtn);
+              await delay(600);
+
+              clickPickListByLabel("Rodzaj zgłoszenia");
+              await delay(250);
+              clickPickListRow(chosenRodzaj);
+              await delay(250);
+
+              clickPickListByLabel("Region");
+              await delay(250);
+              clickPickListRow("R312D2S2");
+              await delay(250);
+
+              clickPickListByLabel("Wskaż wydaną ofertę");
+              await delay(250);
+              clickPickListRow(OFERTA);
+              await delay(300);
+
+              clickPickListByLabel("Wybierz VELO");
+              await delay(250);
+              clickPickListRow(chosenVelo);
+              await delay(200);
+
+              setInputByName("nr_akcji", NR_AKCJI);
+              await delay(100);
+
+              const mailInput = document.querySelector("input[name='mail_konsumenta']");
+              if (mailInput) {
+                mailInput.value = generateRandomEmail();
+                mailInput.dispatchEvent(new Event("input", { bubbles: true }));
+                mailInput.dispatchEvent(new Event("change", { bubbles: true }));
+              }
+              await delay(200);
+
+              if (fileData) {
+                const addPhotoBtn = [...document.querySelectorAll("div[eventproxy^='isc_SimpleTabButton_']")]
+                  .find(d => d.innerText.includes("Dodaj zdjęcie"));
+                if (addPhotoBtn) {
+                  fireMouse(addPhotoBtn);
+                  const input = await waitFor("input[type='file']", 6000);
+                  const bin = atob(fileData.base64);
+                  const arr = new Uint8Array(bin.length);
+                  for (let i = 0; i < arr.length; i++) arr[i] = bin.charCodeAt(i);
+                  const file = new File([arr], fileData.name, { type: fileData.type });
+                  const dt = new DataTransfer();
+                  dt.items.add(file);
+                  input.files = dt.files;
+                  input.dispatchEvent(new Event("change", { bubbles: true }));
+                  await waitForUploadFinish(12000);
+                  await delay(300);
+                }
+              }
+
+              await delay(1500);
+              const saveDiv = [...document.querySelectorAll("div[eventproxy$='_buttonSave']")]
+                .find(d => d.innerText.includes("Zatwierdź"));
+              if (saveDiv) {
+                const scObj = window[saveDiv.getAttribute("eventproxy")];
+                if (scObj && typeof scObj.click === "function") scObj.click();
+                else fireMouse(saveDiv);
+              } else {
+                throw new Error("Nie znaleziono Zatwierdź");
+              }
+
+              return { ok: true, velo: chosenVelo, rodzaj: chosenRodzaj };
+            } catch (err) {
+              return { ok: false, error: err.message || String(err) };
+            }
+          },
+        },
+        (results) => {
+          if (chrome.runtime.lastError) resolve({ ok: false, error: chrome.runtime.lastError.message });
+          else if (results?.[0]?.result) resolve(results[0].result);
+          else resolve({ ok: false, error: "Brak odpowiedzi ze skryptu" });
+        }
+      );
+    });
+  }
+
+  // ====================================================
+  //  MAIN LOOP
+  // ====================================================
+  async function run() {
+    const nrAkcji = $("#nr_akcji").value.trim();
+    if (!nrAkcji) { log("Podaj numer akcji!", "err"); return; }
+
+    const veloValue = $("#velo").value;
+    const delayMs = Math.max(parseFloat($("#delay").value) || 7, 3) * 1000;
+    const team = currentTeam;
+
+    const filesData = await readFiles();
+    const rodzajZgloszenia = $("#rodzajZgloszenia").value;
+    const wydanaOferta = $("#wydanaOferta").value;
+    const eventValue = $("#eventSelect").value;
+
+    const isTimeMode = $("#modeToggle .active").dataset.mode === "time";
+    let totalTarget;
+    let endTime;
+
+    if (isTimeMode) {
+      const h = parseInt($("#hours").value) || 0;
+      const m = parseInt($("#minutes").value) || 0;
+      const totalMs = (h * 3600 + m * 60) * 1000;
+      if (totalMs <= 0) { log("Ustaw czas > 0", "err"); return; }
+      endTime = Date.now() + totalMs;
+      totalTarget = Math.floor(totalMs / delayMs);
+      log(`[${team.toUpperCase()}] Tryb czasowy: ${h}h ${m}m (~${totalTarget} zgl.)`, "info");
+    } else {
+      totalTarget = parseInt($("#quantity").value) || 1;
+      log(`[${team.toUpperCase()}] Tryb ilosciowy: ${totalTarget} zgl.`, "info");
+    }
+
+    running = true;
+    abortFlag = false;
+    successCount = 0;
+    failCount = 0;
+
+    // Show running panel
+    updateCounter(0, isTimeMode ? "~" + totalTarget : totalTarget);
+    setProgress(0, totalTarget);
+    showRunPanel();
+    startTimer();
+    stopBtn.disabled = false;
 
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    let i = 0;
 
-    for (let i = 0; i < quantity; i++) {
-        setTimeout(() => {
+    while (!abortFlag) {
+      if (isTimeMode) {
+        if (Date.now() >= endTime) break;
+        const remMin = Math.ceil((endTime - Date.now()) / 60000);
+        totalTarget = successCount + failCount + Math.floor((endTime - Date.now()) / delayMs);
+        log(`#${i + 1} — start (zostalo ~${remMin} min)`, "info");
+      } else {
+        if (i >= totalTarget) break;
+        log(`#${i + 1}/${totalTarget} — start`, "info");
+      }
 
-            const fileForThisIteration = filesData.length ? filesData[i % filesData.length] : null;
+      let result;
+      if (team === "sampling") {
+        const fileForThis = filesData.length ? filesData[i % filesData.length] : null;
+        result = await executeSampling(tab.id, nrAkcji, veloValue, fileForThis, rodzajZgloszenia, eventValue);
+      } else {
+        const fileForThisVelo = filesData.length ? filesData[i % filesData.length] : null;
+        result = await executeVeloTeam(tab.id, nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileForThisVelo);
+      }
 
-            chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                world: "MAIN",
-                args: [NR_AKCJI, WYBIERZ_VELO_VALUE, fileForThisIteration],
-                func: async (NR_AKCJI, WYBIERZ_VELO_VALUE, fileData) => {
+      if (result.ok) {
+        successCount++;
+        const details = [result.velo, result.rodzaj].filter(Boolean).join(" | ");
+        log(`#${i + 1} OK — ${details}`, "ok");
+      } else {
+        failCount++;
+        log(`#${i + 1} BLAD: ${result.error}`, "err");
+      }
 
-                    function fireMouse(el) {
-                        if (!el) return;
-                        const r = el.getBoundingClientRect();
-                        const x = r.left + r.width / 2;
-                        const y = r.top + r.height / 2;
-                        ["pointerdown","mousedown","pointerup","mouseup","click"].forEach(ev => {
-                            el.dispatchEvent(new MouseEvent(ev, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0 }));
-                        });
-                    }
+      i++;
+      const displayTotal = isTimeMode ? "~" + Math.max(totalTarget, i) : totalTarget;
+      updateCounter(successCount, displayTotal);
+      setProgress(i, isTimeMode ? Math.max(totalTarget, i) : totalTarget);
 
-                    function waitFor(selectorOrFn, timeout = 5000) {
-                        return new Promise((resolve, reject) => {
-                            const start = Date.now();
-                            const interval = setInterval(() => {
-                                let el = null;
-                                if (typeof selectorOrFn === "string") el = document.querySelector(selectorOrFn);
-                                else if (typeof selectorOrFn === "function") el = selectorOrFn();
-                                if (el) { clearInterval(interval); resolve(el); }
-                                else if (Date.now() - start > timeout) { clearInterval(interval); reject("Timeout waitFor"); }
-                            }, 200);
-                        });
-                    }
+      if (abortFlag) break;
 
-                    function waitForUploadFinish(timeout = 10000) {
-                        return new Promise((resolve, reject) => {
-                            const start = Date.now();
-                            const observer = new MutationObserver(() => {
-                                const thumbnails = document.querySelectorAll("img, canvas");
-                                if (thumbnails.length > 0) { observer.disconnect(); resolve(); }
-                            });
-                            observer.observe(document.body, { childList: true, subtree: true });
-                            setTimeout(() => { observer.disconnect(); reject("Upload timeout"); }, timeout);
-                        });
-                    }
-
-                    function generateRandomEmail() {
-                        const firstNamesPL = ["adam","tomasz","kamil","marek","anna","kasia","katarzyna","julia","pawel","lukasz","michal","piotr","karolina","monika"];
-                        const lastNamesPL = ["kowalski","nowak","mazur","wojcik","kaczmarek","zielinski","dabrowski","sikora","lewandowski","krupa"];
-                        const firstNamesEN = ["john","michael","david","james","robert","daniel","thomas","jessica","emily","sarah","laura"];
-                        const lastNamesEN = ["smith","johnson","brown","taylor","anderson","thompson","white","martin"];
-                        const domains = ["gmail.com","wp.pl","onet.pl","interia.pl","outlook.com","o2.pl","int.pl","icloud.com"];
-
-                        const usePolish = Math.random() < 0.8;
-                        const firstName = usePolish
-                            ? firstNamesPL[Math.floor(Math.random() * firstNamesPL.length)]
-                            : firstNamesEN[Math.floor(Math.random() * firstNamesEN.length)];
-                        const lastName = usePolish
-                            ? lastNamesPL[Math.floor(Math.random() * lastNamesPL.length)]
-                            : lastNamesEN[Math.floor(Math.random() * lastNamesEN.length)];
-
-                        let email = firstName;
-                        if (Math.random() < 0.5) email += [".","_",""][Math.floor(Math.random()*3)] + lastName;
-                        email += Math.floor(100 + Math.random()*9000);
-                        const domain = domains[Math.floor(Math.random()*domains.length)];
-                        return `${email}@${domain}`;
-                    }
-
-                    function clickPickListByLabel(labelText) {
-                        const labels = [...document.querySelectorAll("label")];
-                        const label = labels.find(l => l.innerText.trim().toLowerCase() === labelText.toLowerCase());
-                        if (!label) return;
-                        const picker = label.closest("td")?.querySelector(".comboBoxItemPickerLite");
-                        if (picker) fireMouse(picker);
-                    }
-
-                    function clickPickListRow(text) {
-                        const rows = document.querySelectorAll("div[eventproxy^='isc_PickListMenu'] tr");
-                        for (const row of rows) { if (row.innerText.trim() === text) { fireMouse(row); return; } }
-                    }
-
-                    // ▶ NOWY
-                    const newBtn = document.querySelector("div[eventproxy$='_buttonNew']");
-                    fireMouse(newBtn);
-
-                    setTimeout(() => {
-                        clickPickListByLabel("Rodzaj zgłoszenia");
-                        setTimeout(() => clickPickListRow("Brak zasięgu"), 200);
-
-                        setTimeout(() => { clickPickListByLabel("Event"); setTimeout(()=>clickPickListRow("Horeca"),200); }, 400);
-                        setTimeout(() => { clickPickListByLabel("Region"); setTimeout(()=>clickPickListRow("R312D2S2"),200); }, 800);
-                        setTimeout(() => { clickPickListByLabel("Wskaż wariant"); setTimeout(()=>clickPickListRow("Sampling VELO"),200); }, 1100);
-                        setTimeout(() => { clickPickListByLabel("Wybierz VELO"); setTimeout(()=>clickPickListRow(WYBIERZ_VELO_VALUE),200); }, 1400);
-
-                        // inputy
-setTimeout(() => {
-    // 🔹 Pobierz obiekt TextItem
-    const nrAkcjiObj = window.isc_TextItem_2; // patrz $89 w <input> → isc_TextItem_2
-
-    if (nrAkcjiObj) nrAkcjiObj.setValue(NR_AKCJI); // wprowadza całą wartość
-    const mailInput = document.querySelector("input[name='mail_konsumenta']");
-    
-    mailInput.value = generateRandomEmail();
-    mailInput.dispatchEvent(new Event("input", { bubbles: true }));
-    mailInput.dispatchEvent(new Event("change", { bubbles: true }));
-}, 1500);
-
-                        // 🔹 Dodawanie zdjęcia i klik Anuluj
-if (fileData) {
-    setTimeout(async () => {
-        // 🔹 Klik "Dodaj zdjęcie"
-        const addBtn = [...document.querySelectorAll("div[eventproxy^='isc_SimpleTabButton_']")]
-            .find(d => d.innerText.includes("Dodaj zdjęcie"));
-        if (!addBtn) return;
-        fireMouse(addBtn);
-
-        // 🔹 Czekaj na input
-        const input = await waitFor("input[type='file']", 6000);
-
-        // 🔹 Konwertuj Base64 w plik
-        const bin = atob(fileData.base64);
-        const arr = new Uint8Array(bin.length);
-        for (let i = 0; i < arr.length; i++) arr[i] = bin.charCodeAt(i);
-        const file = new File([arr], fileData.name, { type: fileData.type });
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        input.files = dt.files;
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-
-        // 🔹 Czekaj aż upload się zakończy (miniatura/canvas)
-        try {
-            await waitForUploadFinish(12000);
-
-            // 🔹 Klik "Zatwierdź"
-            setTimeout(() => {
-                const saveDiv = [...document.querySelectorAll("div[eventproxy$='_buttonSave']")]
-                    .find(d => d.innerText.includes("Zatwierdź"));
-
-                if (saveDiv) {
-                    const scObj = window[saveDiv.getAttribute("eventproxy")];
-                    if (scObj && typeof scObj.click === "function") {
-                        scObj.click(); // SmartClient
-                    } else {
-                        fireMouse(saveDiv); // fallback
-                    }
-                }
-            }, 300)
-
-        } catch (e) {
-            console.error("❌ Upload / klik Anuluj nieudany", e);
-        }
-
-    }, 1700);
-}
-
-
-                    }, 600);
-
-                }
-            });
-
-        }, i*7000);
+      const shouldContinue = isTimeMode ? Date.now() < endTime : i < totalTarget;
+      if (shouldContinue) {
+        log(`Czekam ${(delayMs / 1000).toFixed(1)}s...`, "info");
+        await sleep(delayMs);
+      }
     }
 
+    stopTimer();
+    log(
+      abortFlag
+        ? `Zatrzymano! OK: ${successCount}, FAIL: ${failCount}`
+        : `Zakonczone! OK: ${successCount}, FAIL: ${failCount}`,
+      abortFlag ? "err" : "ok"
+    );
+
+    running = false;
+    stopBtn.disabled = true;
+    progressBar.style.width = "100%";
+
+    // After 3s show form again
     setTimeout(() => {
-        document.getElementById("clickButton").disabled = false;
-        document.querySelector(".success").textContent = "";
-    }, quantity*7000 + 1000);
-});
+      hideRunPanel();
+    }, 3000);
+  }
+
+  // --- Start ---
+  startBtn.addEventListener("click", () => {
+    if (!running) run();
+  });
+
+  // --- Stop ---
+  stopBtn.addEventListener("click", () => {
+    if (running) {
+      abortFlag = true;
+      stopBtn.disabled = true;
+      stopBtn.textContent = "Zatrzymuje...";
+      log("Zatrzymywanie...", "err");
+      setTimeout(() => { stopBtn.textContent = "Zatrzymaj"; }, 2000);
+    }
+  });
+})();

@@ -2,98 +2,438 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>BM_CHEAT</title>
+  <title>BM Cheat</title>
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: Arial, sans-serif;
-      background-color: #1e1e1e;
-      color: #e0e0e0;
-      padding: 15px;
-      width: 260px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0b1d2c;
+      color: #e4eff7;
+      padding: 0;
+      width: 340px;
+      min-height: 100px;
+      position: relative;
+      overflow-x: hidden;
     }
-    h1 {
-      font-size: 16px;
+
+    body::after {
+      content: 'VELO';
+      position: fixed;
+      bottom: 24px;
+      right: 12px;
+      font-size: 50px;
+      font-weight: 900;
+      letter-spacing: 8px;
+      color: #00d4d4;
+      opacity: 0.035;
+      transform: rotate(-12deg);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* === HEADER === */
+    .header {
+      background: linear-gradient(160deg, #00c8c8 0%, #00b4b4 40%, #009e9e 100%);
+      padding: 14px 16px 12px;
       text-align: center;
-      margin-bottom: 12px;
-      color: #ffa500;
+      position: relative;
     }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #ffe03a, #ffd200, #ffe03a);
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .logo span { color: #ffe03a; }
+    .logo-sub {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 2px;
+      text-transform: uppercase;
+    }
+    .header-info {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+      text-decoration: none;
+    }
+    .header-info:hover {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.1);
+    }
+
+    .content { padding: 12px 14px 14px; position: relative; z-index: 1; }
+
+    /* === SECTIONS === */
+    .section {
+      background: rgba(0, 200, 200, 0.06);
+      border: 1px solid rgba(0, 200, 200, 0.2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #00d4d4;
+      margin-bottom: 8px;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+    }
+
     label {
-      font-size: 13px;
-      margin-top: 10px;
+      font-size: 12px;
+      margin-top: 6px;
       display: block;
-      color: #ccc;
+      color: #7ec8c8;
     }
     input, select {
       width: 100%;
-      padding: 6px;
-      margin-top: 4px;
-      box-sizing: border-box;
-      border: 1px solid #555;
-      border-radius: 4px;
-      background-color: #2b2b2b;
-      color: #fff;
+      padding: 7px 10px;
+      margin-top: 3px;
+      border: 1px solid rgba(0, 200, 200, 0.25);
+      border-radius: 5px;
+      background: rgba(8, 24, 38, 0.85);
+      color: #e4eff7;
+      font-size: 13px;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    input[type="file"] {
-      padding: 3px;
+    input:focus, select:focus {
+      border-color: #00d4d4;
+      outline: none;
+      box-shadow: 0 0 10px rgba(0, 212, 212, 0.2);
     }
+    select { cursor: pointer; }
+    select option { background: #0b1d2c; color: #e4eff7; }
+    input[type="file"] { padding: 4px 8px; font-size: 11px; }
     input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+
+    /* === TOGGLES === */
+    .toggle {
+      display: flex;
+      border: 1px solid rgba(0, 200, 200, 0.25);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 3px;
     }
-    button {
-      margin-top: 15px;
-      padding: 8px;
+    .toggle button {
+      flex: 1;
+      padding: 7px;
+      background: rgba(8, 24, 38, 0.85);
+      color: #5ab8b8;
+      border: none;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-weight: 600;
+    }
+    .toggle button:hover { background: rgba(0, 200, 200, 0.12); }
+    .toggle button.active {
+      background: linear-gradient(135deg, #ffe03a, #ffd200);
+      color: #0b1d2c;
+      font-weight: 800;
+    }
+
+    /* === START BUTTON === */
+    #startBtn {
+      margin-top: 12px;
+      padding: 11px;
       width: 100%;
       cursor: pointer;
-      background-color: #ffa500;
+      background: linear-gradient(135deg, #ffe03a 0%, #ffd200 50%, #ffca00 100%);
       border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      color: #1e1e1e;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      color: #0b1d2c;
+      letter-spacing: 1px;
       transition: 0.2s;
+      text-transform: uppercase;
+      box-shadow: 0 3px 15px rgba(255, 224, 58, 0.25);
     }
-    button:hover {
-      background-color: #ffb733;
+    #startBtn:hover {
+      box-shadow: 0 5px 25px rgba(255, 224, 58, 0.4);
+      transform: translateY(-1px);
     }
-    button:disabled {
-        opacity: 0.6;
+    #startBtn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* === STATS === */
+    #stats {
+      margin-top: 10px;
+      font-size: 12px;
+      text-align: center;
+      min-height: 18px;
+      font-weight: 600;
     }
-    .error, .success {
-        margin-top: 25px;
-        text-align: center;
+    #stats .ok { color: #66bb6a; }
+    #stats .fail { color: #ef5350; }
+    #stats .info { color: #ffe03a; }
+
+    /* === LOG === */
+    #log {
+      margin-top: 8px;
+      max-height: 140px;
+      overflow-y: auto;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      background: rgba(4, 12, 20, 0.9);
+      border: 1px solid rgba(0, 200, 200, 0.15);
+      border-radius: 6px;
+      padding: 6px 8px;
+      display: none;
     }
-    .error {
-        color: red;
+    #log::-webkit-scrollbar { width: 4px; }
+    #log::-webkit-scrollbar-track { background: transparent; }
+    #log::-webkit-scrollbar-thumb { background: rgba(0,200,200,0.3); border-radius: 2px; }
+    #log div { padding: 2px 0; border-bottom: 1px solid rgba(0, 200, 200, 0.08); }
+    #log .log-ok { color: #66bb6a; }
+    #log .log-err { color: #ef5350; }
+    #log .log-info { color: #5ab8b8; }
+
+    /* === PROGRESS === */
+    #progress {
+      margin-top: 8px;
+      height: 4px;
+      background: rgba(0, 200, 200, 0.15);
+      border-radius: 2px;
+      overflow: hidden;
+      display: none;
     }
-    .success {
-        color: greenyellow;
-        font-size: 1.1rem;
+    #progress .bar {
+      height: 100%;
+      background: linear-gradient(90deg, #00d4d4, #ffe03a);
+      width: 0%;
+      transition: width 0.3s;
+      box-shadow: 0 0 8px rgba(0, 212, 212, 0.4);
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+      vertical-align: middle;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .badge-sampling { background: rgba(0,200,200,0.15); color: #00d4d4; border: 1px solid rgba(0,200,200,0.3); }
+    .badge-velo { background: rgba(255,224,58,0.15); color: #ffe03a; border: 1px solid rgba(255,224,58,0.3); }
+
+    /* === RUNNING PANEL === */
+    #runPanel { display: none; margin-top: 10px; }
+    #runPanel.visible { display: block; }
+
+    .counter-box {
+      background: rgba(0, 200, 200, 0.08);
+      border: 1px solid rgba(0, 200, 200, 0.25);
+      border-radius: 10px;
+      padding: 18px 12px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .counter-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #5ab8b8;
+      margin-bottom: 6px;
+    }
+    .counter-num {
+      font-size: 48px;
+      font-weight: 900;
+      color: #ffe03a;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 20px rgba(255, 224, 58, 0.2);
+    }
+    .counter-num .counter-total {
+      font-size: 20px;
+      color: #5ab8b8;
+      font-weight: 600;
+    }
+    .counter-details {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .counter-details .cd-ok { color: #66bb6a; }
+    .counter-details .cd-fail { color: #ef5350; }
+    .counter-details .cd-time { color: #5ab8b8; font-size: 11px; }
+
+    #stopBtn {
+      padding: 11px;
+      width: 100%;
+      cursor: pointer;
+      background: linear-gradient(135deg, #c62828, #e53935);
+      border: none;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      color: #fff;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: 0.2s;
+      box-shadow: 0 3px 15px rgba(229, 57, 53, 0.25);
+      margin-bottom: 10px;
+    }
+    #stopBtn:hover {
+      box-shadow: 0 5px 25px rgba(229, 57, 53, 0.4);
+      transform: translateY(-1px);
+    }
+    #stopBtn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* === FOOTER === */
+    .footer {
+      text-align: center;
+      padding: 8px;
+      font-size: 9px;
+      color: rgba(0, 200, 200, 0.2);
+      letter-spacing: 2px;
     }
   </style>
 </head>
 
 <body>
-  <h1>BM_CHEAT</h1>
-  <label for="nr_akcji">Nr akcji:</label>
-  <input type="text" id="nr_akcji" required>
+  <div class="header">
+    <div class="logo">BM <span>CHEAT</span></div>
+    <div class="logo-sub">wysylki auto-fill system</div>
+    <a class="header-info" id="openInfo" title="Info & FAQ">?</a>
+  </div>
 
-  <label for="velo">Wybierz VELO:</label>
-  <select id="velo">
-    <option value="Velo Peach Ice 4mg Trial">Velo Peach Ice 4mg Trial</option>
-    <option value="Velo Simply Spearmint Mellow 4mg Trial">Velo Simply Spearmint Mellow 4mg Trial</option>
-  </select>
+  <div class="content">
+    <div class="section">
+      <div class="section-title">Tryb zespolu</div>
+      <div class="toggle" id="teamToggle">
+        <button class="active" data-team="sampling">Sampling BM</button>
+        <button data-team="velo">VELO Team</button>
+      </div>
+    </div>
 
-  <label for="fileInput">Zdjęcie do uploadu:</label>
-  <input type="file" id="fileInput" multiple>
+    <div class="section">
+      <div class="section-title">Dane zgloszenia</div>
 
+      <label for="nr_akcji">Nr akcji <span id="nrAkcjiHint" class="badge badge-sampling">tourplaner</span></label>
+      <input type="text" id="nr_akcji" placeholder="np. 1403676">
 
-  <label for="quantity">Ilość:</label>
-  <input type="number" id="quantity" value="1" min="1">
+      <label for="eventSelect">Event</label>
+      <select id="eventSelect">
+        <option value="Horeca">Horeca</option>
+        <option value="Juwenalia">Juwenalia</option>
+      </select>
 
-  <button id="clickButton">Uruchom skrypt</button>
-    <div class="error"></div>
-    <div class="success"></div>
+      <label for="velo">Wariant VELO</label>
+      <select id="velo">
+        <option value="random">Losowy</option>
+        <option value="VELO z aromatem Ice Berries 6mg TRIAL">Ice Berries 6mg</option>
+        <option value="VELO z aromatem Peach Ice 4mg TRIAL">Peach Ice 4mg</option>
+        <option value="VELO z aromatem Simply Spearmint 4mg TRIAL">Simply Spearmint 4mg</option>
+      </select>
+
+      <label for="rodzajZgloszenia">Rodzaj zgloszenia</label>
+      <select id="rodzajZgloszenia">
+        <option value="random">Losowy</option>
+        <option value="Globalna awaria systemu">Globalna awaria systemu</option>
+        <option value="Brak zasięgu">Brak zasięgu</option>
+        <option value="Odmowa">Odmowa</option>
+        <option value="Nieobecność">Nieobecność</option>
+      </select>
+
+      <div id="veloOfertaWrap" style="display:none">
+        <label for="wydanaOferta">Wskaz wydana oferte</label>
+        <select id="wydanaOferta">
+          <option value="Wydanie Velo">Wydanie Velo</option>
+        </select>
+      </div>
+
+      <label for="fileInput">Zdjecia (cyklicznie po zgloszeniach)</label>
+      <input type="file" id="fileInput" multiple accept="image/*">
+    </div>
+
+    <div class="section">
+      <div class="section-title">Tryb pracy</div>
+      <label>Ile dodac?</label>
+      <div class="toggle" id="modeToggle">
+        <button class="active" data-mode="count">Ilosc</button>
+        <button data-mode="time">Czas</button>
+      </div>
+
+      <div id="countSettings">
+        <label for="quantity">Liczba zgloszen</label>
+        <input type="number" id="quantity" value="1" min="1" max="500">
+      </div>
+
+      <div id="timeSettings" style="display:none">
+        <div class="row">
+          <div>
+            <label for="hours">Godziny</label>
+            <input type="number" id="hours" value="0" min="0" max="24">
+          </div>
+          <div>
+            <label for="minutes">Minuty</label>
+            <input type="number" id="minutes" value="30" min="0" max="59">
+          </div>
+        </div>
+      </div>
+
+      <label for="delay">Opoznienie miedzy zgloszeniami (sek)</label>
+      <input type="number" id="delay" value="7" min="3" max="60" step="0.5">
+    </div>
+
+    <div id="formBottom">
+      <button id="startBtn">Uruchom</button>
+    </div>
+
+    <div id="runPanel">
+      <div class="counter-box">
+        <div class="counter-label">Dodane zgloszenia</div>
+        <div class="counter-num"><span id="counterCurrent">0</span><span class="counter-total"> / <span id="counterTotal">0</span></span></div>
+        <div id="progress"><div class="bar"></div></div>
+        <div class="counter-details">
+          <span class="cd-ok" id="cdOk">OK: 0</span>
+          <span class="cd-fail" id="cdFail" style="display:none">FAIL: 0</span>
+          <span class="cd-time" id="cdTime"></span>
+        </div>
+      </div>
+      <button id="stopBtn">Zatrzymaj</button>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <div class="footer">VELO POUCH SYSTEM v2.0</div>
+
   <script src="popup.js"></script>
 </body>
 </html>
