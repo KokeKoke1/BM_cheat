@@ -260,14 +260,14 @@
   // ====================================================
   //  SAMPLING BM — execute on page
   // ====================================================
-  function executeSampling(tabId, nrAkcji, veloValue, fileData, rodzajZgloszenia, eventValue) {
+  function executeSampling(tabId, nrAkcji, veloValue, fileData, rodzajZgloszenia, eventValue, regionValue) {
     return new Promise((resolve) => {
       chrome.scripting.executeScript(
         {
           target: { tabId },
           world: "MAIN",
-          args: [nrAkcji, veloValue, fileData, rodzajZgloszenia, eventValue, SHARED_PAGE_HELPERS],
-          func: async (NR_AKCJI, VELO_VALUE, fileData, RODZAJ, EVENT_VALUE, helpers) => {
+          args: [nrAkcji, veloValue, fileData, rodzajZgloszenia, eventValue, regionValue, SHARED_PAGE_HELPERS],
+          func: async (NR_AKCJI, VELO_VALUE, fileData, RODZAJ, EVENT_VALUE, REGION_VALUE, helpers) => {
             eval(helpers);
 
             const VELO_VARIANTS = [
@@ -302,7 +302,7 @@
 
               clickPickListByLabel("Region");
               await delay(250);
-              clickPickListRow("R312D2S2");
+              clickPickListRow(REGION_VALUE);
               await delay(250);
 
               clickPickListByLabel("Wskaż wariant");
@@ -373,14 +373,14 @@
   // ====================================================
   //  VELO TEAM — execute on page
   // ====================================================
-  function executeVeloTeam(tabId, nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileData) {
+  function executeVeloTeam(tabId, nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileData, regionValue) {
     return new Promise((resolve) => {
       chrome.scripting.executeScript(
         {
           target: { tabId },
           world: "MAIN",
-          args: [nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileData, SHARED_PAGE_HELPERS],
-          func: async (NR_AKCJI, VELO_VALUE, RODZAJ, OFERTA, fileData, helpers) => {
+          args: [nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileData, regionValue, SHARED_PAGE_HELPERS],
+          func: async (NR_AKCJI, VELO_VALUE, RODZAJ, OFERTA, fileData, REGION_VALUE, helpers) => {
             eval(helpers);
 
             const VELO_VARIANTS = [
@@ -410,7 +410,7 @@
 
               clickPickListByLabel("Region");
               await delay(250);
-              clickPickListRow("R312D2S2");
+              clickPickListRow(REGION_VALUE);
               await delay(250);
 
               clickPickListByLabel("Wskaż wydaną ofertę");
@@ -494,6 +494,7 @@
     const rodzajZgloszenia = $("#rodzajZgloszenia").value;
     const wydanaOferta = $("#wydanaOferta").value;
     const eventValue = $("#eventSelect").value;
+    const regionValue = $("#regionSelect").value;
 
     const isTimeMode = $("#modeToggle .active").dataset.mode === "time";
     let totalTarget;
@@ -541,10 +542,10 @@
       let result;
       if (team === "sampling") {
         const fileForThis = filesData.length ? filesData[i % filesData.length] : null;
-        result = await executeSampling(tab.id, nrAkcji, veloValue, fileForThis, rodzajZgloszenia, eventValue);
+        result = await executeSampling(tab.id, nrAkcji, veloValue, fileForThis, rodzajZgloszenia, eventValue, regionValue);
       } else {
         const fileForThisVelo = filesData.length ? filesData[i % filesData.length] : null;
-        result = await executeVeloTeam(tab.id, nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileForThisVelo);
+        result = await executeVeloTeam(tab.id, nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileForThisVelo, regionValue);
       }
 
       if (result.ok) {
