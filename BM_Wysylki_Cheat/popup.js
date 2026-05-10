@@ -235,7 +235,12 @@
       var email = first;
       var sep = [".","_",""][Math.floor(Math.random()*3)];
       if (Math.random() < 0.6) email += sep + last;
-      email += Math.floor(10 + Math.random()*9990);
+      var r = Math.random();
+      if (r < 0.3) { /* brak liczb */ }
+      else if (r < 0.5) { email += Math.floor(1 + Math.random()*9); }
+      else if (r < 0.7) { email += Math.floor(10 + Math.random()*90); }
+      else if (r < 0.85) { email += Math.floor(100 + Math.random()*900); }
+      else { email += Math.floor(1000 + Math.random()*9000); }
       return email + "@" + domains[Math.floor(Math.random()*domains.length)];
     }
 
