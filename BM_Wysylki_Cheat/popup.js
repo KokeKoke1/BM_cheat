@@ -174,15 +174,42 @@
       });
     }
 
-    function waitForUploadFinish(timeout = 12000) {
-      return new Promise((resolve, reject) => {
-        const obs = new MutationObserver(() => {
-          const thumbs = document.querySelectorAll("img, canvas");
-          if (thumbs.length > 0) { obs.disconnect(); resolve(); }
-        });
-        obs.observe(document.body, { childList:true, subtree:true });
-        setTimeout(() => { obs.disconnect(); reject(new Error("Upload timeout")); }, timeout);
+    function waitForUploadFinish(timeout = 15000) {
+      return new Promise((resolve) => {
+        var imgsBefore = document.querySelectorAll("img[src*='data:'], img[src*='blob:'], img[src*='upload']").length;
+        var checks = 0;
+        var iv = setInterval(function() {
+          checks++;
+          var imgsNow = document.querySelectorAll("img[src*='data:'], img[src*='blob:'], img[src*='upload']").length;
+          if (imgsNow > imgsBefore) { clearInterval(iv); resolve(true); }
+          if (checks * 500 > timeout) { clearInterval(iv); resolve(false); }
+        }, 500);
       });
+    }
+
+    function findNewFileInput(existingInputs) {
+      var allInputs = document.querySelectorAll("input[type='file']");
+      for (var k = 0; k < allInputs.length; k++) {
+        if (!existingInputs.includes(allInputs[k])) return allInputs[k];
+      }
+      return allInputs.length > 0 ? allInputs[allInputs.length - 1] : null;
+    }
+
+    function triggerFileUpload(input, file) {
+      var dt = new DataTransfer();
+      dt.items.add(file);
+      var nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'files');
+      if (nativeSetter && nativeSetter.set) {
+        nativeSetter.set.call(input, dt.files);
+      } else {
+        input.files = dt.files;
+      }
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      var form = input.closest("form");
+      if (form) {
+        form.dispatchEvent(new Event("change", { bubbles: true }));
+      }
     }
 
     function generateRandomEmail() {
@@ -255,6 +282,42 @@
     }
 
     function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    async function uploadPhoto(fileData) {
+      if (!fileData) return false;
+      var existingInputs = [...document.querySelectorAll("input[type='file']")];
+      var addPhotoBtn = [...document.querySelectorAll("div[eventproxy^='isc_SimpleTabButton_']")]
+        .find(function(d) {
+          var txt = d.innerText.toLowerCase();
+          return txt.includes("dodaj") && (txt.includes("zdj") || txt.includes("foto") || txt.includes("photo"));
+        });
+      if (!addPhotoBtn) {
+        addPhotoBtn = [...document.querySelectorAll("td, div")]
+          .find(function(d) {
+            var txt = d.innerText.toLowerCase().trim();
+            return txt.includes("dodaj") && txt.includes("zdj") && txt.length < 40;
+          });
+      }
+      if (!addPhotoBtn) return false;
+
+      fireMouse(addPhotoBtn);
+      await delay(1000);
+
+      var fileInput = findNewFileInput(existingInputs);
+      if (!fileInput) {
+        try { fileInput = await waitFor("input[type='file']", 6000); } catch(e) { return false; }
+      }
+      if (!fileInput) return false;
+
+      var bin = atob(fileData.base64);
+      var arr = new Uint8Array(bin.length);
+      for (var fi = 0; fi < bin.length; fi++) arr[fi] = bin.charCodeAt(fi);
+      var file = new File([arr], fileData.name, { type: fileData.type });
+      triggerFileUpload(fileInput, file);
+      await waitForUploadFinish(15000);
+      await delay(400);
+      return true;
+    }
   `;
 
   // ====================================================
@@ -325,26 +388,9 @@
               }
               await delay(200);
 
-              if (fileData) {
-                const addPhotoBtn = [...document.querySelectorAll("div[eventproxy^='isc_SimpleTabButton_']")]
-                  .find(d => d.innerText.includes("Dodaj zdjęcie"));
-                if (addPhotoBtn) {
-                  fireMouse(addPhotoBtn);
-                  const input = await waitFor("input[type='file']", 6000);
-                  const bin = atob(fileData.base64);
-                  const arr = new Uint8Array(bin.length);
-                  for (let i = 0; i < arr.length; i++) arr[i] = bin.charCodeAt(i);
-                  const file = new File([arr], fileData.name, { type: fileData.type });
-                  const dt = new DataTransfer();
-                  dt.items.add(file);
-                  input.files = dt.files;
-                  input.dispatchEvent(new Event("change", { bubbles: true }));
-                  await waitForUploadFinish(12000);
-                  await delay(300);
-                }
-              }
+              var photoOk = await uploadPhoto(fileData);
 
-              await delay(1500);
+              await delay(600);
               const saveDiv = [...document.querySelectorAll("div[eventproxy$='_buttonSave']")]
                 .find(d => d.innerText.includes("Zatwierdź"));
               if (saveDiv) {
@@ -355,7 +401,7 @@
                 throw new Error("Nie znaleziono Zatwierdź");
               }
 
-              return { ok: true, velo: chosenVelo, rodzaj: chosenRodzaj };
+              return { ok: true, velo: chosenVelo, rodzaj: chosenRodzaj, photo: photoOk };
             } catch (err) {
               return { ok: false, error: err.message || String(err) };
             }
@@ -434,26 +480,9 @@
               }
               await delay(200);
 
-              if (fileData) {
-                const addPhotoBtn = [...document.querySelectorAll("div[eventproxy^='isc_SimpleTabButton_']")]
-                  .find(d => d.innerText.includes("Dodaj zdjęcie"));
-                if (addPhotoBtn) {
-                  fireMouse(addPhotoBtn);
-                  const input = await waitFor("input[type='file']", 6000);
-                  const bin = atob(fileData.base64);
-                  const arr = new Uint8Array(bin.length);
-                  for (let i = 0; i < arr.length; i++) arr[i] = bin.charCodeAt(i);
-                  const file = new File([arr], fileData.name, { type: fileData.type });
-                  const dt = new DataTransfer();
-                  dt.items.add(file);
-                  input.files = dt.files;
-                  input.dispatchEvent(new Event("change", { bubbles: true }));
-                  await waitForUploadFinish(12000);
-                  await delay(300);
-                }
-              }
+              var photoOk = await uploadPhoto(fileData);
 
-              await delay(1500);
+              await delay(600);
               const saveDiv = [...document.querySelectorAll("div[eventproxy$='_buttonSave']")]
                 .find(d => d.innerText.includes("Zatwierdź"));
               if (saveDiv) {
@@ -464,7 +493,7 @@
                 throw new Error("Nie znaleziono Zatwierdź");
               }
 
-              return { ok: true, velo: chosenVelo, rodzaj: chosenRodzaj };
+              return { ok: true, velo: chosenVelo, rodzaj: chosenRodzaj, photo: photoOk };
             } catch (err) {
               return { ok: false, error: err.message || String(err) };
             }
@@ -550,8 +579,9 @@
 
       if (result.ok) {
         successCount++;
+        const photoInfo = result.photo === true ? " +foto" : result.photo === false ? " (brak foto)" : "";
         const details = [result.velo, result.rodzaj].filter(Boolean).join(" | ");
-        log(`#${i + 1} OK — ${details}`, "ok");
+        log(`#${i + 1} OK — ${details}${photoInfo}`, "ok");
       } else {
         failCount++;
         log(`#${i + 1} BLAD: ${result.error}`, "err");

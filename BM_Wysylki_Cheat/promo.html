@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 800px;
+    height: 420px;
+    background: linear-gradient(135deg, #0b1d2c 0%, #0f2a3f 40%, #0b1d2c 100%);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bg-velo {
+    position: absolute;
+    bottom: -40px;
+    right: -30px;
+    font-size: 200px;
+    font-weight: 900;
+    letter-spacing: 15px;
+    color: #00d4d4;
+    opacity: 0.04;
+    transform: rotate(-12deg);
+  }
+
+  .bg-circles {
+    position: absolute;
+    top: -80px;
+    left: -80px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,212,212,0.08) 0%, transparent 70%);
+  }
+  .bg-circles2 {
+    position: absolute;
+    bottom: -60px;
+    right: 100px;
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,224,58,0.06) 0%, transparent 70%);
+  }
+
+  .top-bar {
+    height: 4px;
+    background: linear-gradient(90deg, #00c8c8, #ffe03a, #00c8c8);
+  }
+
+  .content {
+    padding: 50px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .badge {
+    display: inline-block;
+    background: rgba(0,200,200,0.15);
+    border: 1px solid rgba(0,200,200,0.3);
+    color: #00d4d4;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-size: 64px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .title span {
+    background: linear-gradient(135deg, #ffe03a, #ffd200);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .version {
+    font-size: 28px;
+    font-weight: 300;
+    color: #00d4d4;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+  }
+
+  .features {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .feat {
+    background: rgba(0,200,200,0.08);
+    border: 1px solid rgba(0,200,200,0.2);
+    border-radius: 8px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .feat-icon {
+    font-size: 18px;
+  }
+  .feat-text {
+    font-size: 13px;
+    color: #b0d4d4;
+    font-weight: 600;
+  }
+  .feat-text strong {
+    color: #ffe03a;
+  }
+
+  .bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(160deg, #00c8c8, #00a8a8);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 60px;
+  }
+  .bottom-bar .left {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+  }
+  .bottom-bar .right {
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+  <div class="bg-velo">VELO</div>
+  <div class="bg-circles"></div>
+  <div class="bg-circles2"></div>
+  <div class="top-bar"></div>
+
+  <div class="content">
+    <div class="badge">nowa wersja</div>
+    <div class="title">BM <span>CHEAT</span></div>
+    <div class="version">v2.0 Release</div>
+
+    <div class="features">
+      <div class="feat">
+        <span class="feat-icon">&#9889;</span>
+        <span class="feat-text"><strong>VELO Team</strong> + Sampling</span>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">&#128337;</span>
+        <span class="feat-text">Tryb <strong>czasowy</strong></span>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">&#128248;</span>
+        <span class="feat-text">Auto <strong>zdjecia</strong></span>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">&#128202;</span>
+        <span class="feat-text"><strong>Licznik</strong> live</span>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">&#9209;</span>
+        <span class="feat-text">Przycisk <strong>STOP</strong></span>
+      </div>
+      <div class="feat">
+        <span class="feat-icon">&#128220;</span>
+        <span class="feat-text"><strong>FAQ</strong> & Info</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <span class="left">WYSYLKI AUTO-FILL SYSTEM</span>
+    <span class="right">github.com/KokeKoke1/BM_cheat</span>
+  </div>
+</body>
+</html>
