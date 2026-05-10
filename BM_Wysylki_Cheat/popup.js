@@ -174,16 +174,16 @@
       });
     }
 
-    function waitForUploadFinish(timeout = 15000) {
+    function waitForUploadFinish(timeout = 3000) {
       return new Promise((resolve) => {
-        var imgsBefore = document.querySelectorAll("img[src*='data:'], img[src*='blob:'], img[src*='upload']").length;
+        var before = document.querySelectorAll("img, canvas, .thumbnailImage, [class*='thumb'], [class*='upload'], [class*='preview']").length;
         var checks = 0;
         var iv = setInterval(function() {
           checks++;
-          var imgsNow = document.querySelectorAll("img[src*='data:'], img[src*='blob:'], img[src*='upload']").length;
-          if (imgsNow > imgsBefore) { clearInterval(iv); resolve(true); }
-          if (checks * 500 > timeout) { clearInterval(iv); resolve(false); }
-        }, 500);
+          var now = document.querySelectorAll("img, canvas, .thumbnailImage, [class*='thumb'], [class*='upload'], [class*='preview']").length;
+          if (now > before) { clearInterval(iv); resolve(true); }
+          if (checks * 300 > timeout) { clearInterval(iv); resolve(false); }
+        }, 300);
       });
     }
 
@@ -324,8 +324,8 @@
       for (var fi = 0; fi < bin.length; fi++) arr[fi] = bin.charCodeAt(fi);
       var file = new File([arr], fileData.name, { type: fileData.type });
       triggerFileUpload(fileInput, file);
-      await waitForUploadFinish(15000);
-      await delay(400);
+      await waitForUploadFinish(3000);
+      await delay(200);
       return true;
     }
   `;
@@ -400,7 +400,7 @@
 
               var photoOk = await uploadPhoto(fileData);
 
-              await delay(600);
+              await delay(300);
               const saveDiv = [...document.querySelectorAll("div[eventproxy$='_buttonSave']")]
                 .find(d => d.innerText.includes("Zatwierdź"));
               if (saveDiv) {
@@ -492,7 +492,7 @@
 
               var photoOk = await uploadPhoto(fileData);
 
-              await delay(600);
+              await delay(300);
               const saveDiv = [...document.querySelectorAll("div[eventproxy$='_buttonSave']")]
                 .find(d => d.innerText.includes("Zatwierdź"));
               if (saveDiv) {
