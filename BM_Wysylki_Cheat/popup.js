@@ -212,6 +212,8 @@
       }
     }
 
+    var _usedEmails = {};
+
     function generateRandomEmail() {
       var plM = ["adam","tomasz","kamil","marek","pawel","lukasz","michal","piotr","bartek","mateusz","dawid","jakub","szymon","wojciech","krzysztof","marcin","grzegorz","dominik","patryk","rafal","artur","sebastian","damian","przemek","filip","hubert","oskar","wiktor","igor","jan","maciej","norbert","adrian","konrad","robert","daniel","mariusz","radek","kacper","milosz","olek","bruno","leon","tymek","max","alan","emil"];
       var plF = ["anna","kasia","katarzyna","julia","karolina","monika","natalia","agnieszka","magdalena","ewa","aleksandra","weronika","zuzanna","maja","oliwia","hanna","lena","zofia","amelia","alicja","maria","martyna","patrycja","paulina","sylwia","joanna","dorota","izabela","gabriela","nikola","klaudia","emilia","dagmara","beata","marta","diana","laura","sandra","kamila","dominika","justyna"];
@@ -222,26 +224,45 @@
       var enL = ["smith","johnson","brown","taylor","anderson","thompson","white","martin","garcia","wilson","moore","jackson","harris","clark","lewis","walker","hall","young","king","wright","lopez","hill","scott","green","baker","adams","nelson","carter","mitchell","perez","roberts","turner","phillips","campbell","parker","evans","edwards","collins","stewart","morris","reed","cook","bailey","bell","cooper","ward","cox","howard","brooks","james","bennett","gray","price","wood","long"];
       var domains = ["gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","wp.pl","onet.pl","interia.pl","outlook.com","o2.pl","int.pl","icloud.com","yahoo.com","tlen.pl"];
 
-      var usePL = Math.random() < 0.8;
-      var isFemale = Math.random() < 0.45;
-      var first, last;
-      if (usePL) {
-        first = isFemale ? plF[Math.floor(Math.random()*plF.length)] : plM[Math.floor(Math.random()*plM.length)];
-        last = isFemale ? plLF[Math.floor(Math.random()*plLF.length)] : plLM[Math.floor(Math.random()*plLM.length)];
-      } else {
-        first = isFemale ? enF[Math.floor(Math.random()*enF.length)] : enM[Math.floor(Math.random()*enM.length)];
-        last = enL[Math.floor(Math.random()*enL.length)];
+      function pick(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+
+      function makeOne() {
+        var usePL = Math.random() < 0.8;
+        var isFemale = Math.random() < 0.45;
+        var first, last;
+        if (usePL) {
+          first = isFemale ? pick(plF) : pick(plM);
+          last = isFemale ? pick(plLF) : pick(plLM);
+        } else {
+          first = isFemale ? pick(enF) : pick(enM);
+          last = pick(enL);
+        }
+        var domain = pick(domains);
+        var pattern = Math.floor(Math.random()*8);
+        var local;
+        switch(pattern) {
+          case 0: local = first + "." + last; break;
+          case 1: local = first + "." + last + (89 + Math.floor(Math.random()*18)); break;
+          case 2: local = first + (1989 + Math.floor(Math.random()*18)); break;
+          case 3: local = first[0] + "." + last + Math.floor(1 + Math.random()*99); break;
+          case 4: local = first + "_" + last; break;
+          case 5: local = first + Math.floor(1 + Math.random()*999); break;
+          case 6: local = last + "." + first; break;
+          case 7: local = first + last; break;
+        }
+        return local + "@" + domain;
       }
-      var email = first;
-      var sep = [".","_",""][Math.floor(Math.random()*3)];
-      if (Math.random() < 0.6) email += sep + last;
-      var r = Math.random();
-      if (r < 0.3) { /* brak liczb */ }
-      else if (r < 0.5) { email += Math.floor(1 + Math.random()*9); }
-      else if (r < 0.7) { email += Math.floor(10 + Math.random()*90); }
-      else if (r < 0.85) { email += Math.floor(100 + Math.random()*900); }
-      else { email += Math.floor(1000 + Math.random()*9000); }
-      return email + "@" + domains[Math.floor(Math.random()*domains.length)];
+
+      for (var attempt = 0; attempt < 10; attempt++) {
+        var email = makeOne();
+        if (!_usedEmails[email]) {
+          _usedEmails[email] = true;
+          return email;
+        }
+      }
+      var fallback = makeOne() + Math.floor(Math.random()*99999);
+      _usedEmails[fallback] = true;
+      return fallback;
     }
 
     function clickPickListByLabel(labelText) {
