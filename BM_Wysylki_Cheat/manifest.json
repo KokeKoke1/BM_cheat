@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "BM Wysyłki Auto",
-  "version": "2.0",
+  "version": "2.0.1",
   "description": "Automatyczne dodawanie zgłoszeń Sampling VELO",
   "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["http://51.83.154.156:3847/*"],
   "action": {
     "default_title": "BM Wysyłki",
     "default_popup": "popup.html"

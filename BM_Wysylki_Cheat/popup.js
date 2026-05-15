@@ -149,6 +149,60 @@
   }
 
   // ====================================================
+  //  EMAIL GENERATOR (runs in popup, checks VPS)
+  // ====================================================
+  const EMAIL_API = "http://51.83.154.156:3847";
+
+  function makeRandomEmail() {
+    const plM = ["adam","tomasz","kamil","marek","pawel","lukasz","michal","piotr","bartek","mateusz","dawid","jakub","szymon","wojciech","krzysztof","marcin","grzegorz","dominik","patryk","rafal","artur","sebastian","damian","przemek","filip","hubert","oskar","wiktor","igor","jan","maciej","norbert","adrian","konrad","robert","daniel","mariusz","radek","kacper","milosz","olek","bruno","leon","tymek","max","alan","emil"];
+    const plF = ["anna","kasia","katarzyna","julia","karolina","monika","natalia","agnieszka","magdalena","ewa","aleksandra","weronika","zuzanna","maja","oliwia","hanna","lena","zofia","amelia","alicja","maria","martyna","patrycja","paulina","sylwia","joanna","dorota","izabela","gabriela","nikola","klaudia","emilia","dagmara","beata","marta","diana","laura","sandra","kamila","dominika","justyna"];
+    const plLM = ["kowalski","nowak","mazur","wojcik","kaczmarek","zielinski","dabrowski","sikora","lewandowski","krupa","jankowski","grabowski","pawlak","michalski","nowakowski","adamczyk","dudek","szymanski","wozniak","kozlowski","kaminski","piotrowski","walczak","gorski","rutkowski","michalak","szewczyk","ostrowski","tomaszewski","pietrzak","marciniak","wrobel","zalewski","jasinski","bak","chmielewski","borkowski","krawczyk","sobczak","glowacki","sawicki","kubiak","maciejewski","urbanski","witkowski","stepien","jaworski"];
+    const plLF = ["kowalska","nowak","mazur","wojcik","kaczmarek","zielinska","dabrowska","sikora","lewandowska","krupa","jankowska","grabowska","pawlak","michalska","nowakowska","adamczyk","dudek","szymanska","wozniak","kozlowska","kaminska","piotrowska","walczak","gorska","rutkowska","michalak","szewczyk","ostrowska","tomaszewska","pietrzak","marciniak","wrobel","zalewska","jasinska","bak","chmielewska","borkowska","krawczyk","sobczak","glowacka","sawicka","kubiak","maciejewska","urbanska","witkowska","stepien","jaworska"];
+    const enM = ["john","michael","david","james","robert","daniel","thomas","chris","alex","ryan","kevin","brian","matt","andrew","mark","steven","jason","eric","brandon","tyler","jake","noah","liam","ethan","mason","logan","luke","owen","nathan","connor","sean","kyle","derek","adam","travis","scott","greg","ben","tony","pete"];
+    const enF = ["jessica","emily","sarah","laura","emma","olivia","sophia","ashley","hannah","samantha","rachel","megan","nicole","amanda","jennifer","lauren","rebecca","amber","brittany","victoria","grace","chloe","lily","natalie","abigail","madison","ella","zoe","leah","kate","claire","molly","brooke","paige"];
+    const enL = ["smith","johnson","brown","taylor","anderson","thompson","white","martin","garcia","wilson","moore","jackson","harris","clark","lewis","walker","hall","young","king","wright","lopez","hill","scott","green","baker","adams","nelson","carter","mitchell","perez","roberts","turner","phillips","campbell","parker","evans","edwards","collins","stewart","morris","reed","cook","bailey","bell","cooper","ward","cox","howard","brooks","james","bennett","gray","price","wood","long"];
+    const domains = ["gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","wp.pl","onet.pl","interia.pl","outlook.com","o2.pl","int.pl","icloud.com","yahoo.com","tlen.pl"];
+    const pick = (arr) => arr[Math.floor(Math.random()*arr.length)];
+    const usePL = Math.random() < 0.8;
+    const isFemale = Math.random() < 0.45;
+    let first, last;
+    if (usePL) { first = isFemale ? pick(plF) : pick(plM); last = isFemale ? pick(plLF) : pick(plLM); }
+    else { first = isFemale ? pick(enF) : pick(enM); last = pick(enL); }
+    const domain = pick(domains);
+    const pattern = Math.floor(Math.random()*8);
+    let local;
+    switch(pattern) {
+      case 0: local = first + "." + last; break;
+      case 1: local = first + "." + last + (89 + Math.floor(Math.random()*18)); break;
+      case 2: local = first + (1989 + Math.floor(Math.random()*18)); break;
+      case 3: local = first[0] + "." + last + Math.floor(1 + Math.random()*99); break;
+      case 4: local = first + "_" + last; break;
+      case 5: local = first + Math.floor(1 + Math.random()*999); break;
+      case 6: local = last + "." + first; break;
+      case 7: local = first + last; break;
+    }
+    return local + "@" + domain;
+  }
+
+  async function generateUniqueEmail() {
+    for (let attempt = 0; attempt < 15; attempt++) {
+      const email = makeRandomEmail();
+      try {
+        const resp = await fetch(EMAIL_API + "/check", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ email })
+        });
+        const data = await resp.json();
+        if (!data.exists) return email;
+      } catch(e) {
+        return email; // API down — use anyway
+      }
+    }
+    return makeRandomEmail() + Math.floor(Math.random()*99999);
+  }
+
+  // ====================================================
   //  SHARED HELPERS (injected into page)
   // ====================================================
   const SHARED_PAGE_HELPERS = `
@@ -212,57 +266,13 @@
       }
     }
 
-    var _usedEmails = {};
-
-    function generateRandomEmail() {
-      var plM = ["adam","tomasz","kamil","marek","pawel","lukasz","michal","piotr","bartek","mateusz","dawid","jakub","szymon","wojciech","krzysztof","marcin","grzegorz","dominik","patryk","rafal","artur","sebastian","damian","przemek","filip","hubert","oskar","wiktor","igor","jan","maciej","norbert","adrian","konrad","robert","daniel","mariusz","radek","kacper","milosz","olek","bruno","leon","tymek","max","alan","emil"];
-      var plF = ["anna","kasia","katarzyna","julia","karolina","monika","natalia","agnieszka","magdalena","ewa","aleksandra","weronika","zuzanna","maja","oliwia","hanna","lena","zofia","amelia","alicja","maria","martyna","patrycja","paulina","sylwia","joanna","dorota","izabela","gabriela","nikola","klaudia","emilia","dagmara","beata","marta","diana","laura","sandra","kamila","dominika","justyna"];
-      var plLM = ["kowalski","nowak","mazur","wojcik","kaczmarek","zielinski","dabrowski","sikora","lewandowski","krupa","jankowski","grabowski","pawlak","michalski","nowakowski","adamczyk","dudek","szymanski","wozniak","kozlowski","kaminski","piotrowski","walczak","gorski","rutkowski","michalak","szewczyk","ostrowski","tomaszewski","pietrzak","marciniak","wrobel","zalewski","jasinski","bak","chmielewski","borkowski","krawczyk","sobczak","glowacki","sawicki","kubiak","maciejewski","urbanski","witkowski","stepien","jaworski"];
-      var plLF = ["kowalska","nowak","mazur","wojcik","kaczmarek","zielinska","dabrowska","sikora","lewandowska","krupa","jankowska","grabowska","pawlak","michalska","nowakowska","adamczyk","dudek","szymanska","wozniak","kozlowska","kaminska","piotrowska","walczak","gorska","rutkowska","michalak","szewczyk","ostrowska","tomaszewska","pietrzak","marciniak","wrobel","zalewska","jasinska","bak","chmielewska","borkowska","krawczyk","sobczak","glowacka","sawicka","kubiak","maciejewska","urbanska","witkowska","stepien","jaworska"];
-      var enM = ["john","michael","david","james","robert","daniel","thomas","chris","alex","ryan","kevin","brian","matt","andrew","mark","steven","jason","eric","brandon","tyler","jake","noah","liam","ethan","mason","logan","luke","owen","nathan","connor","sean","kyle","derek","adam","travis","scott","greg","ben","tony","pete"];
-      var enF = ["jessica","emily","sarah","laura","emma","olivia","sophia","ashley","hannah","samantha","rachel","megan","nicole","amanda","jennifer","lauren","rebecca","amber","brittany","victoria","grace","chloe","lily","natalie","abigail","madison","ella","zoe","leah","kate","claire","molly","brooke","paige"];
-      var enL = ["smith","johnson","brown","taylor","anderson","thompson","white","martin","garcia","wilson","moore","jackson","harris","clark","lewis","walker","hall","young","king","wright","lopez","hill","scott","green","baker","adams","nelson","carter","mitchell","perez","roberts","turner","phillips","campbell","parker","evans","edwards","collins","stewart","morris","reed","cook","bailey","bell","cooper","ward","cox","howard","brooks","james","bennett","gray","price","wood","long"];
-      var domains = ["gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","wp.pl","onet.pl","interia.pl","outlook.com","o2.pl","int.pl","icloud.com","yahoo.com","tlen.pl"];
-
-      function pick(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
-
-      function makeOne() {
-        var usePL = Math.random() < 0.8;
-        var isFemale = Math.random() < 0.45;
-        var first, last;
-        if (usePL) {
-          first = isFemale ? pick(plF) : pick(plM);
-          last = isFemale ? pick(plLF) : pick(plLM);
-        } else {
-          first = isFemale ? pick(enF) : pick(enM);
-          last = pick(enL);
-        }
-        var domain = pick(domains);
-        var pattern = Math.floor(Math.random()*8);
-        var local;
-        switch(pattern) {
-          case 0: local = first + "." + last; break;
-          case 1: local = first + "." + last + (89 + Math.floor(Math.random()*18)); break;
-          case 2: local = first + (1989 + Math.floor(Math.random()*18)); break;
-          case 3: local = first[0] + "." + last + Math.floor(1 + Math.random()*99); break;
-          case 4: local = first + "_" + last; break;
-          case 5: local = first + Math.floor(1 + Math.random()*999); break;
-          case 6: local = last + "." + first; break;
-          case 7: local = first + last; break;
-        }
-        return local + "@" + domain;
+    function setEmail(email) {
+      var mailInput = document.querySelector("input[name='mail_konsumenta']");
+      if (mailInput) {
+        mailInput.value = email;
+        mailInput.dispatchEvent(new Event("input", { bubbles: true }));
+        mailInput.dispatchEvent(new Event("change", { bubbles: true }));
       }
-
-      for (var attempt = 0; attempt < 10; attempt++) {
-        var email = makeOne();
-        if (!_usedEmails[email]) {
-          _usedEmails[email] = true;
-          return email;
-        }
-      }
-      var fallback = makeOne() + Math.floor(Math.random()*99999);
-      _usedEmails[fallback] = true;
-      return fallback;
     }
 
     function clickPickListByLabel(labelText) {
@@ -359,14 +369,14 @@
   // ====================================================
   //  SAMPLING BM — execute on page
   // ====================================================
-  function executeSampling(tabId, nrAkcji, veloValue, fileData, rodzajZgloszenia, eventValue, regionValue) {
+  function executeSampling(tabId, nrAkcji, veloValue, fileData, rodzajZgloszenia, eventValue, regionValue, emailValue) {
     return new Promise((resolve) => {
       chrome.scripting.executeScript(
         {
           target: { tabId },
           world: "MAIN",
-          args: [nrAkcji, veloValue, fileData, rodzajZgloszenia, eventValue, regionValue, SHARED_PAGE_HELPERS],
-          func: async (NR_AKCJI, VELO_VALUE, fileData, RODZAJ, EVENT_VALUE, REGION_VALUE, helpers) => {
+          args: [nrAkcji, veloValue, fileData, rodzajZgloszenia, eventValue, regionValue, emailValue, SHARED_PAGE_HELPERS],
+          func: async (NR_AKCJI, VELO_VALUE, fileData, RODZAJ, EVENT_VALUE, REGION_VALUE, EMAIL_VALUE, helpers) => {
             eval(helpers);
 
             const VELO_VARIANTS = [
@@ -416,12 +426,7 @@
 
               setInputByName("nr_akcji", NR_AKCJI);
 
-              const mailInput = document.querySelector("input[name='mail_konsumenta']");
-              if (mailInput) {
-                mailInput.value = generateRandomEmail();
-                mailInput.dispatchEvent(new Event("input", { bubbles: true }));
-                mailInput.dispatchEvent(new Event("change", { bubbles: true }));
-              }
+              setEmail(EMAIL_VALUE);
               await delay(200);
 
               var photoOk = await uploadPhoto(fileData);
@@ -455,14 +460,14 @@
   // ====================================================
   //  VELO TEAM — execute on page
   // ====================================================
-  function executeVeloTeam(tabId, nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileData, regionValue) {
+  function executeVeloTeam(tabId, nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileData, regionValue, emailValue) {
     return new Promise((resolve) => {
       chrome.scripting.executeScript(
         {
           target: { tabId },
           world: "MAIN",
-          args: [nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileData, regionValue, SHARED_PAGE_HELPERS],
-          func: async (NR_AKCJI, VELO_VALUE, RODZAJ, OFERTA, fileData, REGION_VALUE, helpers) => {
+          args: [nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileData, regionValue, emailValue, SHARED_PAGE_HELPERS],
+          func: async (NR_AKCJI, VELO_VALUE, RODZAJ, OFERTA, fileData, REGION_VALUE, EMAIL_VALUE, helpers) => {
             eval(helpers);
 
             const VELO_VARIANTS = [
@@ -508,23 +513,18 @@
               setInputByName("nr_akcji", NR_AKCJI);
               await delay(100);
 
-              const mailInput = document.querySelector("input[name='mail_konsumenta']");
-              if (mailInput) {
-                mailInput.value = generateRandomEmail();
-                mailInput.dispatchEvent(new Event("input", { bubbles: true }));
-                mailInput.dispatchEvent(new Event("change", { bubbles: true }));
-              }
+              setEmail(EMAIL_VALUE);
               await delay(200);
 
               var photoOk = await uploadPhoto(fileData);
 
               await delay(300);
-              const saveDiv = [...document.querySelectorAll("div[eventproxy$='_buttonSave']")]
+              const saveDiv2 = [...document.querySelectorAll("div[eventproxy$='_buttonSave']")]
                 .find(d => d.innerText.includes("Zatwierdź"));
-              if (saveDiv) {
-                const scObj = window[saveDiv.getAttribute("eventproxy")];
-                if (scObj && typeof scObj.click === "function") scObj.click();
-                else fireMouse(saveDiv);
+              if (saveDiv2) {
+                const scObj2 = window[saveDiv2.getAttribute("eventproxy")];
+                if (scObj2 && typeof scObj2.click === "function") scObj2.click();
+                else fireMouse(saveDiv2);
               } else {
                 throw new Error("Nie znaleziono Zatwierdź");
               }
@@ -605,12 +605,13 @@
       }
 
       let result;
+      const emailForThis = await generateUniqueEmail();
       if (team === "sampling") {
         const fileForThis = filesData.length ? filesData[i % filesData.length] : null;
-        result = await executeSampling(tab.id, nrAkcji, veloValue, fileForThis, rodzajZgloszenia, eventValue, regionValue);
+        result = await executeSampling(tab.id, nrAkcji, veloValue, fileForThis, rodzajZgloszenia, eventValue, regionValue, emailForThis);
       } else {
         const fileForThisVelo = filesData.length ? filesData[i % filesData.length] : null;
-        result = await executeVeloTeam(tab.id, nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileForThisVelo, regionValue);
+        result = await executeVeloTeam(tab.id, nrAkcji, veloValue, rodzajZgloszenia, wydanaOferta, fileForThisVelo, regionValue, emailForThis);
       }
 
       if (result.ok) {
