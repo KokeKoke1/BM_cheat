@@ -154,21 +154,61 @@
   const EMAIL_API = "http://51.83.154.156:3847";
 
   function makeRandomEmail() {
-    const plM = ["adam","tomasz","kamil","marek","pawel","lukasz","michal","piotr","bartek","mateusz","dawid","jakub","szymon","wojciech","krzysztof","marcin","grzegorz","dominik","patryk","rafal","artur","sebastian","damian","przemek","filip","hubert","oskar","wiktor","igor","jan","maciej","norbert","adrian","konrad","robert","daniel","mariusz","radek","kacper","milosz","olek","bruno","leon","tymek","max","alan","emil"];
-    const plF = ["anna","kasia","katarzyna","julia","karolina","monika","natalia","agnieszka","magdalena","ewa","aleksandra","weronika","zuzanna","maja","oliwia","hanna","lena","zofia","amelia","alicja","maria","martyna","patrycja","paulina","sylwia","joanna","dorota","izabela","gabriela","nikola","klaudia","emilia","dagmara","beata","marta","diana","laura","sandra","kamila","dominika","justyna"];
-    const plLM = ["kowalski","nowak","mazur","wojcik","kaczmarek","zielinski","dabrowski","sikora","lewandowski","krupa","jankowski","grabowski","pawlak","michalski","nowakowski","adamczyk","dudek","szymanski","wozniak","kozlowski","kaminski","piotrowski","walczak","gorski","rutkowski","michalak","szewczyk","ostrowski","tomaszewski","pietrzak","marciniak","wrobel","zalewski","jasinski","bak","chmielewski","borkowski","krawczyk","sobczak","glowacki","sawicki","kubiak","maciejewski","urbanski","witkowski","stepien","jaworski"];
-    const plLF = ["kowalska","nowak","mazur","wojcik","kaczmarek","zielinska","dabrowska","sikora","lewandowska","krupa","jankowska","grabowska","pawlak","michalska","nowakowska","adamczyk","dudek","szymanska","wozniak","kozlowska","kaminska","piotrowska","walczak","gorska","rutkowska","michalak","szewczyk","ostrowska","tomaszewska","pietrzak","marciniak","wrobel","zalewska","jasinska","bak","chmielewska","borkowska","krawczyk","sobczak","glowacka","sawicka","kubiak","maciejewska","urbanska","witkowska","stepien","jaworska"];
-    const enM = ["john","michael","david","james","robert","daniel","thomas","chris","alex","ryan","kevin","brian","matt","andrew","mark","steven","jason","eric","brandon","tyler","jake","noah","liam","ethan","mason","logan","luke","owen","nathan","connor","sean","kyle","derek","adam","travis","scott","greg","ben","tony","pete"];
-    const enF = ["jessica","emily","sarah","laura","emma","olivia","sophia","ashley","hannah","samantha","rachel","megan","nicole","amanda","jennifer","lauren","rebecca","amber","brittany","victoria","grace","chloe","lily","natalie","abigail","madison","ella","zoe","leah","kate","claire","molly","brooke","paige"];
-    const enL = ["smith","johnson","brown","taylor","anderson","thompson","white","martin","garcia","wilson","moore","jackson","harris","clark","lewis","walker","hall","young","king","wright","lopez","hill","scott","green","baker","adams","nelson","carter","mitchell","perez","roberts","turner","phillips","campbell","parker","evans","edwards","collins","stewart","morris","reed","cook","bailey","bell","cooper","ward","cox","howard","brooks","james","bennett","gray","price","wood","long"];
-    const domains = ["gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","wp.pl","onet.pl","interia.pl","outlook.com","o2.pl","int.pl","icloud.com","yahoo.com","tlen.pl"];
+    // === NARODOWOSCI ===
+    const nations = {
+      pl: { // 80%
+        m: ["adam","tomasz","kamil","marek","pawel","lukasz","michal","piotr","bartek","mateusz","dawid","jakub","szymon","wojciech","krzysztof","marcin","grzegorz","dominik","patryk","rafal","artur","sebastian","damian","przemek","filip","hubert","oskar","wiktor","igor","jan","maciej","norbert","adrian","konrad","robert","daniel","mariusz","radek","kacper","milosz","olek","bruno","leon","tymek","max","alan","emil"],
+        f: ["anna","kasia","katarzyna","julia","karolina","monika","natalia","agnieszka","magdalena","ewa","aleksandra","weronika","zuzanna","maja","oliwia","hanna","lena","zofia","amelia","alicja","maria","martyna","patrycja","paulina","sylwia","joanna","dorota","izabela","gabriela","nikola","klaudia","emilia","dagmara","beata","marta","diana","laura","sandra","kamila","dominika","justyna"],
+        lm: ["kowalski","nowak","mazur","wojcik","kaczmarek","zielinski","dabrowski","sikora","lewandowski","krupa","jankowski","grabowski","pawlak","michalski","nowakowski","adamczyk","dudek","szymanski","wozniak","kozlowski","kaminski","piotrowski","walczak","gorski","rutkowski","michalak","szewczyk","ostrowski","tomaszewski","pietrzak","marciniak","wrobel","zalewski","jasinski","bak","chmielewski","borkowski","krawczyk","sobczak","glowacki","sawicki","kubiak","maciejewski","urbanski","witkowski","stepien","jaworski"],
+        lf: ["kowalska","nowak","mazur","wojcik","kaczmarek","zielinska","dabrowska","sikora","lewandowska","krupa","jankowska","grabowska","pawlak","michalska","nowakowska","adamczyk","dudek","szymanska","wozniak","kozlowska","kaminska","piotrowska","walczak","gorska","rutkowska","michalak","szewczyk","ostrowska","tomaszewska","pietrzak","marciniak","wrobel","zalewska","jasinska","bak","chmielewska","borkowska","krawczyk","sobczak","glowacka","sawicka","kubiak","maciejewska","urbanska","witkowska","stepien","jaworska"],
+        domains: ["gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","wp.pl","onet.pl","interia.pl","outlook.com","o2.pl","tlen.pl"]
+      },
+      ua: { // 10%
+        m: ["oleksandr","andriy","dmytro","mykola","volodymyr","ivan","petro","serhiy","taras","bohdan","vasyl","yuriy","maksym","artem","roman","oleh","viktor","denys","ruslan","pavlo","kyrylo","vladyslav","markiyan","nazariy","ostap"],
+        f: ["oksana","natalia","tetiana","iryna","olena","anna","kateryna","yulia","maria","svitlana","daryna","alina","viktoriia","diana","sofiya","anastasiya","khrystyna","halyna","larysa","mariya","polina","zlata","veronika","bohdana","yaryna"],
+        lm: ["shevchenko","bondarenko","kovalenko","tkachenko","kravchenko","oliynyk","shevchuk","polishchuk","boyko","lysenko","marchenko","rudenko","savchenko","melnyk","moroz","pavlenko","petrenko","sydorenko","khomenko","levchenko","mazur","koval","zinchenko","honcharenko","vasylenko"],
+        lf: ["shevchenko","bondarenko","kovalenko","tkachenko","kravchenko","oliynyk","shevchuk","polishchuk","boyko","lysenko","marchenko","rudenko","savchenko","melnyk","moroz","pavlenko","petrenko","sydorenko","khomenko","levchenko","mazur","koval","zinchenko","honcharenko","vasylenko"],
+        domains: ["gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","ukr.net","ukr.net","i.ua","outlook.com","meta.ua"]
+      },
+      de: { // 4%
+        m: ["lukas","leon","finn","paul","jonas","felix","maximilian","elias","noah","ben","tim","niklas","jan","moritz","david","alexander","julian","tobias","marcel","stefan","thomas","markus","andreas","christian","sebastian"],
+        f: ["emma","mia","hannah","sophia","lena","anna","lea","marie","laura","julia","lisa","sarah","jana","nina","katharina","maria","johanna","clara","amelie","charlotte","frieda","greta","marlene","helene","annika"],
+        lm: ["mueller","schmidt","schneider","fischer","weber","meyer","wagner","becker","schulz","hoffmann","schaefer","koch","bauer","richter","klein","wolf","schroeder","neumann","schwarz","zimmermann","braun","krueger","hartmann","lange","werner"],
+        lf: ["mueller","schmidt","schneider","fischer","weber","meyer","wagner","becker","schulz","hoffmann","schaefer","koch","bauer","richter","klein","wolf","schroeder","neumann","schwarz","zimmermann","braun","krueger","hartmann","lange","werner"],
+        domains: ["gmail.com","gmail.com","gmail.com","gmail.com","web.de","gmx.de","gmx.de","outlook.de","t-online.de","freenet.de"]
+      },
+      en: { // 3%
+        m: ["john","michael","david","james","robert","daniel","thomas","chris","alex","ryan","kevin","brian","matt","andrew","mark","steven","jason","eric","brandon","tyler","jake","noah","liam","ethan","mason","logan","luke","owen","nathan","connor","sean","kyle","derek","adam","travis","scott","greg","ben","tony","pete"],
+        f: ["jessica","emily","sarah","laura","emma","olivia","sophia","ashley","hannah","samantha","rachel","megan","nicole","amanda","jennifer","lauren","rebecca","amber","brittany","victoria","grace","chloe","lily","natalie","abigail","madison","ella","zoe","leah","kate","claire","molly","brooke","paige"],
+        lm: ["smith","johnson","brown","taylor","anderson","thompson","white","martin","garcia","wilson","moore","jackson","harris","clark","lewis","walker","hall","young","king","wright","lopez","hill","scott","green","baker","adams","nelson","carter","mitchell","perez","roberts","turner","phillips","campbell","parker","evans","edwards","collins","stewart","morris"],
+        lf: ["smith","johnson","brown","taylor","anderson","thompson","white","martin","garcia","wilson","moore","jackson","harris","clark","lewis","walker","hall","young","king","wright","lopez","hill","scott","green","baker","adams","nelson","carter","mitchell","perez","roberts","turner","phillips","campbell","parker","evans","edwards","collins","stewart","morris"],
+        domains: ["gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","outlook.com","yahoo.com","icloud.com","hotmail.com","aol.com"]
+      },
+      cz: { // 3%
+        m: ["jan","petr","tomas","martin","jakub","david","lukas","filip","adam","ondrej","matej","vojtech","daniel","michal","marek","radek","pavel","jiri","karel","vaclav","ales","miroslav","stanislav","zbynek","roman"],
+        f: ["tereza","anna","katarina","lucie","petra","marie","veronika","marketa","jana","eva","barbora","monika","nikola","lenka","klara","adela","simona","hana","zuzana","michaela","karolina","natalie","gabriela","kristyna","denisa"],
+        lm: ["novak","svoboda","novotny","dvorak","cerny","prochazka","kucera","vesely","horak","nemec","marek","pospisil","hajek","jelinek","kral","ruzicka","benes","fiala","sedlacek","dostal","nguyen","kovar","blazek","krejci","urbanek"],
+        lf: ["novakova","svobodova","novotna","dvorakova","cerna","prochazkova","kucerova","vesela","horakova","nemcova","markova","pospisilova","hajkova","jelinkova","kralova","ruzickova","benesova","fialova","sedlackova","dostalova","nguyen","kovarova","blazkova","krejcova","urbankova"],
+        domains: ["gmail.com","gmail.com","gmail.com","gmail.com","gmail.com","seznam.cz","seznam.cz","email.cz","centrum.cz","outlook.com"]
+      }
+    };
+
     const pick = (arr) => arr[Math.floor(Math.random()*arr.length)];
-    const usePL = Math.random() < 0.8;
+
+    // Losowanie narodowosci: PL 80%, UA 10%, DE 4%, EN 3%, CZ 3%
+    const rNation = Math.random();
+    let nation;
+    if (rNation < 0.80) nation = nations.pl;
+    else if (rNation < 0.90) nation = nations.ua;
+    else if (rNation < 0.94) nation = nations.de;
+    else if (rNation < 0.97) nation = nations.en;
+    else nation = nations.cz;
+
     const isFemale = Math.random() < 0.45;
-    let first, last;
-    if (usePL) { first = isFemale ? pick(plF) : pick(plM); last = isFemale ? pick(plLF) : pick(plLM); }
-    else { first = isFemale ? pick(enF) : pick(enM); last = pick(enL); }
-    const domain = pick(domains);
+    const first = isFemale ? pick(nation.f) : pick(nation.m);
+    const last = isFemale ? pick(nation.lf) : pick(nation.lm);
+    const domain = pick(nation.domains);
+
     const pattern = Math.floor(Math.random()*8);
     let local;
     switch(pattern) {
